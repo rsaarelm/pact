@@ -1,7 +1,4 @@
-pact.bin: pact.elf
-	arm-none-eabi-objcopy -O binary $< $@
-
-pact.elf: pact.asm fasmarm
+pact.bin: pact.asm fasmarm
 	./fasmarm pact.asm $@
 
 fasmarm: fasm/source/linux/fasmarm.asm
@@ -10,7 +7,7 @@ fasmarm: fasm/source/linux/fasmarm.asm
 	chmod a+x fasmarm
 
 clean:
-	rm -f *.elf *.bin
+	rm -f *.bin
 
 realclean: clean
 	rm -f fasmarm
