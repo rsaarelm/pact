@@ -1,1 +1,3 @@
 fasmarm
+*.elf
+*.bin
