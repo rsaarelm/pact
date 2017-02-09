@@ -1,6 +1,8 @@
 format binary
 thumb
-processor 0x00098280 ; cortex-m0
+; This is the spec for Cortex-M0. Maybe.
+processor CPU32_V4T + CPU32_V5T + CPU32_V6T + CPU32_ALIGN + CPU32_6M
+
 
 org     0x08000000
 
