@@ -94,16 +94,18 @@ start:
     ; Jump to inner interpreter, using r0 value as the start word.
     adr r1, docol
     bx r1
+align 4
 return_stack_end: dw RETURN_STACK_END
 
+align 2
 pact_boot:
     ; TODO: Stuff here
     nop
     nop
     b pact_boot
 
+align 2
 error:
-    nop
     b error
 
 ;; Inner interpreter for threaded Pact bytecode
