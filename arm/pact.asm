@@ -24,6 +24,8 @@ ram_region RETURN_STACK, 256
 ; Buffer for constructing words
 ram_region WORD_BUFFER, 32
 
+STACK_TOP = _region_pos
+
 RCC = 0x40021000
 GPIOA = 0x48000000
 
@@ -65,7 +67,7 @@ macro POPRSP reg {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Code
 
 
-    dw RAM_START + RAM_LENGTH ; Stack pointer
+    dw STACK_TOP ; Stack pointer
     dw start + 1
     dw error + 1
     dw error + 1
