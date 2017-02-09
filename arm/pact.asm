@@ -1,6 +1,6 @@
 format binary
-use32
 thumb
+processor 0x00098280 ; cortex-m0
 
 org     0x08000000
 
