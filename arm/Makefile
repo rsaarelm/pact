@@ -14,6 +14,7 @@ debug:
 	# Spawn a debug server in a separate window
 	$(TERMINAL) -e st-util &
 	arm-none-eabi-gdb -ex "tar extended-remote :4242"
+	killall st-util
 
 clean:
 	rm -f *.bin
