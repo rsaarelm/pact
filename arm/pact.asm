@@ -89,6 +89,11 @@ macro POPRSP reg {
     dw error + 1
     dw error + 1
 
+align 2
+error:
+    b error
+
+align 2
 start:
     ; Init return stack
     ; XXX: Is there a nicer way to get the constant here than to use the
@@ -97,22 +102,19 @@ start:
     ; Init r0, as if we'd have called NEXT
     adr r0, pact_boot
     ; Jump to inner interpreter, using r0 value as the start word.
-    adr r1, docol
-    bx r1
+    b docol
 align 4
 return_stack_end: dw RETURN_STACK_END
 
 align 2
 pact_boot:
+    dw $ + 4 + 1  ; Code word.
     ; TODO: Stuff here
     nop
     nop
     b pact_boot
 
 align 2
-error:
-    b error
-
 ;; Inner interpreter for threaded Pact bytecode
 ;; NEXT jumps here, so R0 will contain what we're running now.
 docol:
