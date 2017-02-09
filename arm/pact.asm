@@ -7,6 +7,23 @@ org     0x08000000
 RAM_START = 0x20000000
 RAM_LENGTH = 8192
 
+; Compile-time variable for setting up memory regions
+_region_pos = RAM_START + RAM_LENGTH
+
+; for region REGION, define symbols REGION_START, REGION_LENGTH and REGION_END
+macro ram_region name, size
+{
+    name#_LENGTH = size
+    name#_END = _region_pos
+    _region_pos = _region_pos - size
+    name#_START = _region_pos
+}
+
+ram_region RETURN_STACK, 256
+
+; Buffer for constructing words
+ram_region WORD_BUFFER, 32
+
 RCC = 0x40021000
 GPIOA = 0x48000000
 
@@ -49,7 +66,7 @@ macro POPRSP reg {
 
 
     dw RAM_START + RAM_LENGTH ; Stack pointer
-    dw reset + 1
+    dw start + 1
     dw error + 1
     dw error + 1
     dw error + 1
@@ -65,9 +82,23 @@ macro POPRSP reg {
     dw error + 1
     dw error + 1
 
-reset:
+start:
+    ; Init return stack
+    ; XXX: Is there a nicer way to get the constant here than to use the
+    ; intermediate mem addr?
+    ldr r11, [return_stack_end]
+    ; Init r0, as if we'd have called NEXT
+    adr r0, pact_boot
+    ; Jump to inner interpreter, using r0 value as the start word.
+    adr r1, docol
+    bx r1
+return_stack_end: dw RETURN_STACK_END
+
+pact_boot:
+    ; TODO: Stuff here
     nop
-    b reset
+    nop
+    b pact_boot
 
 error:
     nop
@@ -79,3 +110,5 @@ docol:
     PUSHRSP r10     ; Store next instruction on return stack
     add r10, r0, #4 ; Make NIP the next word from the code word.
     NEXT            ; Execute the word
+
+; vim:syntax=fasm
