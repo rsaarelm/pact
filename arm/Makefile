@@ -6,7 +6,7 @@ pact.elf: pact.o
 	arm-none-eabi-ld -Ttext 0x08000000 -o $@ $<
 
 %.o: %.S
-	arm-none-eabi-as -mthumb -mcpu=cortex-m0 -o $@ $<
+	arm-none-eabi-as -g -mthumb -mcpu=cortex-m0 -o $@ $<
 
 dump: pact.elf
 	arm-none-eabi-objdump --demangle --disassemble $<
