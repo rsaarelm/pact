@@ -58,8 +58,8 @@ _err:
 @ The NEXT macro ends machine code words by jumping to the next threaded code position.
 .macro NEXT
     ldr r0, [r5, #4]            @ Load next instruction to r0, increment NIP
-    ldr r1, [r0]                @ Jump to address in next instruction
-    bx r1
+    ldr r1, [r0]                @ Memory at NIP is jump address, deref into r1
+    bx r1                       @ Jump to address
 .endm
 
 @ Push to return stack
@@ -84,7 +84,7 @@ _start:
 @ NEXT jumps here, assume r0 will contain the current code word address
 docol:
     PUSH_RSP r5                     @ Store next instruction on return stack
-    add r5, r0, #4                  @ Move past code word
+    ldr r5, [r0, #4]                @ Word after codeword -> NIP
     NEXT
 
 @ Test word, TODO: Better stuff.
