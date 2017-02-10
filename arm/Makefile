@@ -1,7 +1,3 @@
-TERMINAL=urxvt
-
-# TODO
-
 pact.bin: pact.elf
 	arm-none-eabi-objcopy -S -O binary $< $@
 	arm-none-eabi-size $<
@@ -18,11 +14,8 @@ dump: pact.elf
 debug: pact.bin
 	# Assume you're using a STM32 board.
 	st-flash write pact.bin 0x08000000
-	sleep 1
 	# Spawn a debug server in a separate window
-	$(TERMINAL) -e st-util &
-	arm-none-eabi-gdb -ex "tar extended-remote :4242" -ex "set arm force-mode thumb" pact.elf
-	killall st-util
+	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
 clean:
 	rm -f *.bin *.elf *.o
