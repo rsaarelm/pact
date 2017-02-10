@@ -77,19 +77,40 @@ _err:
 .global _start
 _start:
     ldr r6, =RETURN_STACK_END       @ Initialize RSP
-    adr r0, pact_boot               @ Load initial word
+    ldr r0, =pact_boot              @ Load initial word
     b docol
 
 @ Inner interpreter for threaded Pact bytecode
 @ NEXT jumps here, assume r0 will contain the current code word address
 docol:
     PUSH_RSP r5                     @ Store next instruction on return stack
-    ldr r5, [r0, #4]                @ Word after codeword -> NIP
+    add r0, #4
+    mov r5, r0                      @ Word after codeword -> NIP
+    NEXT
+
+@ Exit a Pact word
+exit:
+    POP_RSP r5
     NEXT
 
 @ Test word, TODO: Better stuff.
 pact_boot:
-    .long code_pact_boot
+    .long docol
 code_pact_boot:
+    ping
+    pong
+    exit
+
+@ Machine word 1
+ping:
+    .long ping_code
+ping_code:
     nop
-    b code_pact_boot
+    NEXT
+
+@ Machine word 2
+pong:
+    .long pong_code
+pong_code:
+    nop
+    NEXT
