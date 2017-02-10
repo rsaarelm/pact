@@ -100,21 +100,27 @@ exit:
 pact_boot:
     .long docol
 code_pact_boot:
-    .long ping
-    .long pong
+    .long lit
+    .long 1
+    .long lit
+    .long 2
+    .long add
     .long exit
 
-@ Machine word 1
-.align 4
-ping:
-    .long ping_code + 1
-ping_code:
-    nop
+@ Add two stack values
+add:
+    .long add_code + 1
+add_code:
+    pop {r0, r1}
+    add r1, r0
+    push {r1}
     NEXT
 
-@ Machine word 2
-pong:
-    .long pong_code + 1
-pong_code:
-    nop
+@ Save the next word to stack as literal
+lit:
+    .long lit_code + 1
+lit_code:
+    ldr r1, [r5]
+    push {r1}
+    add r5, #4
     NEXT
