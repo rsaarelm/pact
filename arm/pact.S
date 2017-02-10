@@ -57,8 +57,9 @@ _err:
 
 @ The NEXT macro ends machine code words by jumping to the next threaded code position.
 .macro NEXT
-    ldr r0, [r5, #4]            @ Load next instruction to r0, increment NIP
-    ldr r1, [r0]                @ Memory at NIP is jump address, deref into r1
+    ldr r0, [r5]                @ Load next instruction to r0, increment NIP
+    add r5, #4
+    ldr r1, [r0]                @ Dereference codeword
     bx r1                       @ Jump to address
 .endm
 
