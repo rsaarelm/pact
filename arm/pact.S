@@ -84,7 +84,6 @@ _start:
 
 @ Inner interpreter for threaded Pact bytecode
 @ NEXT jumps here, assume r0 will contain the current code word address
-.align 4
 docol:
     PUSH_RSP r5                     @ Store next instruction on return stack
     add r0, #4
@@ -92,7 +91,6 @@ docol:
     NEXT
 
 @ Exit a Pact word
-.align 4
 exit:
     POP_RSP r5
     NEXT
@@ -115,7 +113,6 @@ ping_code:
     NEXT
 
 @ Machine word 2
-.align 4
 pong:
     .long pong_code
 pong_code:
