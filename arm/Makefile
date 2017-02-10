@@ -1,12 +1,16 @@
 TERMINAL=urxvt
 
-pact.bin: pact.asm fasmarm
-	./fasmarm pact.asm $@
+# TODO
 
-fasmarm: fasm/source/linux/fasmarm.asm
-	fasm fasm/source/linux/fasmarm.asm
-	mv fasm/source/linux/fasmarm .
-	chmod a+x fasmarm
+pact.bin: pact.elf
+	arm-none-eabi-objcopy -S -O binary $< $@
+	arm-none-eabi-size $<
+
+pact.elf: pact.o
+	arm-none-eabi-ld -Ttext 0x08000000 -o $@ $<
+
+%.o: %.S
+	arm-none-eabi-as -mthumb -mcpu=cortex-m0 -o $@ $<
 
 debug: pact.bin
 	# Assume you're using a STM32 board.
@@ -18,7 +22,4 @@ debug: pact.bin
 	killall st-util
 
 clean:
-	rm -f *.bin
-
-realclean: clean
-	rm -f fasmarm
+	rm -f *.bin *.elf *.o
