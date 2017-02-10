@@ -107,14 +107,14 @@ code_pact_boot:
 @ Machine word 1
 .align 4
 ping:
-    .long ping_code
+    .long ping_code + 1
 ping_code:
     nop
     NEXT
 
 @ Machine word 2
 pong:
-    .long pong_code
+    .long pong_code + 1
 pong_code:
     nop
     NEXT
