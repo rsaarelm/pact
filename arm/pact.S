@@ -5,7 +5,6 @@ TOS .req r5  @ Top-of-stack register
 
 STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 
-# TODO: Led blinker demo
 # TODO: Put VM stuff, docol, NEXT etc, in a separate include file
 # TODO: Name lookup, make use of the flag values
 # TODO: Add a linker file for memory regions and interrupt vector
@@ -266,33 +265,6 @@ defcode zbranch, zbranch
     NEXT
 
 ################################ Hardware stuff
-
-defconst rcc rcc 0x40021000
-defconst gpioa gpioa 0x48000000
-
-# I want to be able to say "rcc port-a enable" and get bit 17 toggled at rcc + 14.
-# Already defined the base address at rcc, and "enable" looks pretty generic,
-# so "port-a" needs to do some work here.
-
-# : clock-gpio-a ( base-addr -- addr bit ) 20 + $20000 ;
-defword clock-gpio-a, clock_gpio_a
-    .long lit
-    .long 20
-    .long plus      @ Offset from RCC base
-    .long lit
-    .long 0x20000   @ Bit offset to toggle
-    .long exit
-
-# XXX: This is too specific
-# : enable ( addr bitmask -- ) over @ or swap !
-#   ( Set bit at memory addr to 1. )
-defword enable, enable
-    .long over
-    .long fetch
-    .long or
-    .long swap
-    .long store
-    .long exit
 
 # TODO Rewrite in Pact once we get the REPL going
 # This is pretty awful as is.
