@@ -101,7 +101,7 @@ exit:
 @ Test word, TODO: Better stuff.
 .align 4
 pact_boot:
-    .long docol
+    .long docol + 1
 code_pact_boot:
     .long lit
     .long 1
