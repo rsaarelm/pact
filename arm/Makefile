@@ -12,9 +12,11 @@ pact.elf: pact.o
 dump: pact.elf
 	arm-none-eabi-objdump --demangle --disassemble $<
 
-debug: pact.bin
+deploy: pact.bin
 	# Assume you're using a STM32 board.
 	st-flash write pact.bin 0x08000000
+
+debug: deploy
 	# Spawn a debug server in a separate window
 	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
