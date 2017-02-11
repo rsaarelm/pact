@@ -152,7 +152,6 @@ defword boot, pact_boot
 defcode +, add
     TOS_POP r0
     add TOS, r0
-    push {r1}
     NEXT
 
 # Save the next word to stack as literal
