@@ -147,7 +147,7 @@ docol:
     mov NIP, r0                      @ Word after codeword -> NIP
     NEXT
 
-defword boot, pact_boot
+defword "boot", pact_boot
 # Hardware test
     .long init_hw
 1:
@@ -160,7 +160,7 @@ defword boot, pact_boot
 ################################ Memory operations
 
 # Save the next word to stack as literal
-defcode lit, lit
+defcode "lit", lit
     ldr r1, [NIP]
     TOS_PUSH r1
     add NIP, #4     @ The literal wasn't a command, advance NIP past it
@@ -168,13 +168,13 @@ defcode lit, lit
 
 # Read memory at address
 # : @ ( addr -- value )
-defcode \@, fetch
+defcode "\@", fetch
     ldr TOS, [TOS]
     NEXT
 
 # Write value to address
 # : ! ( value addr -- )
-defcode !, store
+defcode "!", store
     TOS_POP r0          @ The value
     str r0, [TOS]       @ Address is at TOS
     TOS_POP r0          @ Drop address
@@ -183,24 +183,24 @@ defcode !, store
 ################################ Stack juggling
 
 # : drop ( x -- )
-defcode drop, drop
+defcode "drop", drop
     TOS_POP r0
     NEXT
 
 # : dup ( x -- x x )
-defcode dup, dup
+defcode "dup", dup
     push {TOS}
     NEXT
 
 # : swap ( x y -- y x )
-defcode swap, swap
+defcode "swap", swap
     pop {r0}
     push {TOS}
     mov TOS, r0
     NEXT
 
 # : over ( x y -- x y x )
-defcode over, over
+defcode "over", over
     ldr r0, [SP]    @ Get second stack value, so first at *SP
     TOS_PUSH r0
     NEXT
@@ -208,7 +208,7 @@ defcode over, over
 ################################ Logic and arithmetic
 
 # : not ( x -- !x )
-defcode not, not
+defcode "not", not
     cmp TOS, #0
     bne 1f
     sub TOS, #1     @ Make it -1 = 0xffffffff
@@ -218,25 +218,25 @@ defcode not, not
     NEXT
 
 # : or ( x y -- x|y )
-defcode or, or
+defcode "or", or
     TOS_POP r0
     orr TOS, r0
     NEXT
 
 # : + ( x y -- x+y )
-defcode +, plus
+defcode "+", plus
     TOS_POP r0
     add TOS, r0
     NEXT
 
 # : - ( x y -- x-y )
-defcode -, minus
+defcode "-", minus
     TOS_POP r0
     sub TOS, r0
     NEXT
 
 # : * ( x y -- xy )
-defcode *, times
+defcode "*", times
     TOS_POP r0
     mul TOS, r0
     NEXT
@@ -244,17 +244,17 @@ defcode *, times
 ################################ Flow control
 
 # Exit a Pact word
-defcode exit, exit
+defcode "exit", exit
     POP_RSP NIP
     NEXT
 
 # Jump NIP to address in the cell next to the 'branch' one.
-defcode branch, branch
+defcode "branch", branch
     ldr NIP, [NIP]
     NEXT
 
 # If top of stack is 0, do a branch
-defcode zbranch, zbranch
+defcode "zbranch", zbranch
     TOS_POP r0
     cmp r0, #0
     bne 1f
@@ -268,7 +268,7 @@ defcode zbranch, zbranch
 
 # TODO Rewrite in Pact once we get the REPL going
 # This is pretty awful as is.
-defcode init-hw, init_hw
+defcode "init-hw", init_hw
     ldr r0, =0x40021000 @ RCC
     add r0, #0x14          @ Start GPIOA clock
     ldr r1, [r0]
@@ -344,7 +344,7 @@ defcode init-hw, init_hw
 
 # Emit char to serial-out
 # : emit ( char -- )
-defcode emit emit
+defcode "emit" emit
     ldr r0, =0x40004400 @ USART2
     add r0, #28         @ isr
 # Busy-wait until ISR clears send
@@ -362,7 +362,7 @@ defcode emit emit
 # Return char and true or false depending on if key is available in serial input
 # : key? ( -- c T | F )
 # XXX: Looks like I can't make a macro parameter be "key?".
-defcode key-p key_p
+defcode "key?" key_p
     ldr r0, =0x40004400 @ USART2
     add r0, #28         @ isr
     ldr r1, [r0]
@@ -383,19 +383,19 @@ defcode key-p key_p
     NEXT
 
 # Wait for key input.
-defword key, key
+defword "key", key
 1:
     .long key_p, zbranch, 1b, exit
 
 # TODO: Use a parameter instead of hardcoding both on and off.
-defcode led-on led_on
+defcode "led-on" led_on
     ldr r0, =0x48000000 @ GPIOA
     add r0, #0x18
     mov r1, #0x20
     str r1, [r0]
     NEXT
 
-defcode led-off led_off
+defcode "led-off" led_off
     ldr r0, =0x48000000 @ GPIOA
     add r0, #0x18
     mov r1, #0x20
