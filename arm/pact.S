@@ -77,12 +77,53 @@ _err:
     pop {TOS}
 .endm
 
+# Backpointer to the last word defined at compile time
+_latest_word = 0
+
+# TODO: Flag support
+FLAG_IMMEDIATE_WORD = 0x80  @ Immediate words are executed at word definition time
+FLAG_HIDDEN_WORD = 0x20     @ Hidden words are not returned during word lookup
+
+# Build a word header
+# name: The string name used in Pact code
+# sym: The symbol used in assembly
+# flags: Bitmask for immediate word or hidden word
+#
+# Used as part of defcode and defword macros, do not use directly.
+.macro word_header name, sym, flags=0
+# XXX: The argument to .align is an exponent of 2, not byte number?
+# Looks like .align 2 gets me 4-byte word boundary then.
+.align 2
+name_\sym:
+    .long _latest_word          @ Back pointer to previous.
+    .byte \flags
+    .asciz "\name"
+.align 2
+\sym:
+
+# Assign this word to the latest word chain
+_latest_word = name_\sym
+.endm
+
+# Define a native code word
+.macro defcode name, sym, flags=0
+    word_header \name, \sym, \flags
+    .long 1f + 1                @ Jump to code in next word in Thumb mode
+1:
+.endm
+
+# Define an interpreted word
+.macro defword name, sym, flags=0
+    word_header \name, \sym, \flags
+    .long docol + 1
+.endm
+
 .global _start
 _start:
     ldr RSP, =RETURN_STACK_END       @ Initialize RSP
     ldr TOS, =STACK_UNDERFLOW
     ldr r0, =pact_boot               @ Load initial word
-    ldr NIP, =code_pact_boot
+    ldr NIP, =pact_boot + 4
     b docol
 
 # Inner interpreter for threaded Pact bytecode
@@ -99,10 +140,7 @@ exit:
     NEXT
 
 # Test word, TODO: Better stuff.
-.align 4
-pact_boot:
-    .long docol + 1
-code_pact_boot:
+defword boot, pact_boot
     .long lit
     .long 1
     .long lit
@@ -111,20 +149,14 @@ code_pact_boot:
     .long exit
 
 # Add two stack values
-.align 4
-add:
-    .long add_code + 1
-add_code:
+defcode +, add
     TOS_POP r0
     add TOS, r0
     push {r1}
     NEXT
 
 # Save the next word to stack as literal
-.align 4
-lit:
-    .long lit_code + 1
-lit_code:
+defcode lit, lit
     ldr r1, [NIP]
     TOS_PUSH r1
     add NIP, #4     @ The literal wasn't a command, advance NIP past it
