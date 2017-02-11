@@ -5,6 +5,11 @@ RSP .req r6  @ Return stack pointer (return stack is separate from the data stac
 
 STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 
+# TODO: Led blinker demo
+# TODO: Put VM stuff, docol, NEXT etc, in a separate include file
+# TODO: Name lookup, make use of the flag values
+# TODO: Add a linker file for memory regions and interrupt vector
+
 RAM_START = 0x20000000
 RAM_LENGTH = 8192
 
@@ -80,18 +85,18 @@ _err:
 # Backpointer to the last word defined at compile time
 _latest_word = 0
 
-# TODO: Flag support
 FLAG_IMMEDIATE_WORD = 0x80  @ Immediate words are executed at word definition time
 FLAG_HIDDEN_WORD = 0x20     @ Hidden words are not returned during word lookup
 
 # Build a word header
-# name: The string name used in Pact code
-# sym: The symbol used in assembly
+# name: The string name used in Pact code, can be any ascii text without whitespace
+# sym: The symbol used in assembly, must be a valid symbol for the assembler,
+#      otherwise should be same as name
 # flags: Bitmask for immediate word or hidden word
 #
 # Used as part of defcode and defword macros, do not use directly.
 .macro word_header name, sym, flags=0
-# XXX: The argument to .align is an exponent of 2, not byte number?
+# The argument to .align is an exponent of 2, not byte number?
 # Looks like .align 2 gets me 4-byte word boundary then.
 .align 2
 name_\sym:
@@ -118,6 +123,13 @@ _latest_word = name_\sym
     .long docol + 1
 .endm
 
+.macro defconst name, sym, value
+    defcode \name, \sym
+    ldr r0, =\value
+    TOS_PUSH r0
+    NEXT
+.endm
+
 .global _start
 _start:
     ldr RSP, =RETURN_STACK_END       @ Initialize RSP
@@ -139,20 +151,24 @@ exit:
     POP_RSP NIP
     NEXT
 
-# Test word, TODO: Better stuff.
 defword boot, pact_boot
     .long lit
-    .long 1
+    .long 10
+    .long lit
+    .long 3
+    .long minus
+    .long lit
+    .long 3         @ 7 3
+    .long over      @ 7 3 7
+    .long plus      @ 7 10
     .long lit
     .long 2
-    .long add
+    .long times    @ 7 20
+    .long swap     @ 20 7
+    .long minus    @ 13
     .long exit
 
-# Add two stack values
-defcode +, add
-    TOS_POP r0
-    add TOS, r0
-    NEXT
+################################ Memory operations
 
 # Save the next word to stack as literal
 defcode lit, lit
@@ -160,3 +176,87 @@ defcode lit, lit
     TOS_PUSH r1
     add NIP, #4     @ The literal wasn't a command, advance NIP past it
     NEXT
+
+# Read memory at address
+# : @ ( addr -- value )
+defcode \@, fetch
+    ldr TOS, [TOS]
+    NEXT
+
+# Write value to address
+# : ! ( value addr -- )
+defcode !, store
+    TOS_POP r0          @ The value
+    str r0, [TOS]       @ Address is at TOS
+    TOS_POP r0          @ Drop address
+    NEXT
+
+################################ Stack juggling
+
+# : swap ( x y -- y x )
+defcode swap, swap
+    pop {r0}
+    push {TOS}
+    mov TOS, r0
+    NEXT
+
+# : over ( x y -- x y x )
+defcode over, over
+    ldr r0, [SP]    @ Get second stack value, so first at *SP
+    TOS_PUSH r0
+    NEXT
+
+################################ Logic and arithmetic
+
+# : or ( x y -- x|y )
+defcode or, or
+    TOS_POP r0
+    orr TOS, r0
+    NEXT
+
+# : + ( x y -- x+y )
+defcode +, plus
+    TOS_POP r0
+    add TOS, r0
+    NEXT
+
+# : - ( x y -- x-y )
+defcode -, minus
+    TOS_POP r0
+    sub TOS, r0
+    NEXT
+
+# : * ( x y -- xy )
+defcode *, times
+    TOS_POP r0
+    mul TOS, r0
+    NEXT
+
+################################ Hardware stuff
+
+defconst rcc rcc 0x40021000
+defconst gpioa gpioa 0x48000000
+
+# I want to be able to say "rcc port-a enable" and get bit 17 toggled at rcc + 14.
+# Already defined the base address at rcc, and "enable" looks pretty generic,
+# so "port-a" needs to do some work here.
+
+# : clock-gpio-a ( base-addr -- addr bit ) 20 + $20000 ;
+defword clock-gpio-a, clock_gpio_a
+    .long lit
+    .long 20
+    .long plus      @ Offset from RCC base
+    .long lit
+    .long 0x20000   @ Bit offset to toggle
+    .long exit
+
+# XXX: This is too specific
+# : enable ( addr bitmask -- ) over @ or swap !
+#   ( Set bit at memory addr to 1. )
+defword enable, enable
+    .long over
+    .long fetch
+    .long or
+    .long swap
+    .long store
+    .long exit
