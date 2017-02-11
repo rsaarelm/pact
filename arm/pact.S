@@ -1,7 +1,7 @@
 # Special registers used by the Pact interpreter:
-TOS .req r4  @ Top-of-stack register
-NIP .req r5  @ Next instruction pointer
+NIP .req r7  @ Next instruction pointer
 RSP .req r6  @ Return stack pointer (return stack is separate from the data stack)
+TOS .req r5  @ Top-of-stack register
 
 STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 
