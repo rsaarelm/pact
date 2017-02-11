@@ -153,6 +153,12 @@ exit:
 
 defword boot, pact_boot
     .long init_hw
+    .long lit
+    .long 0x40
+    .long emit      @ Print to UART2
+    .long lit
+    .long 0x42
+    .long emit      @ Print to UART2
     .long led_on
     .long lit
     .long 10
@@ -269,47 +275,121 @@ defword enable, enable
     .long exit
 
 # TODO Rewrite in Pact once we get the REPL going
+# This is pretty awful as is.
 defcode init-hw, init_hw
     ldr r0, =0x40021000 @ RCC
-    add r0, #0x14
+    add r0, #0x14          @ Start GPIOA clock
     ldr r1, [r0]
     mov r2, #1
     lsl r2, #17
-    orr r1, r2          @ Start GPIOA clock
+    orr r1, r2
+    str r1, [r0]
+
+    add r0, #0x8           @ Start USART2 clock
+    ldr r1, [r0]
+    mov r2, #1
+    lsl r2, #17
+    orr r1, r2
     str r1, [r0]
 
     ldr r0, =0x48000000 @ GPIOA
-    ldr r1, [r0]        @ Pin P5 mode Output
-    mov r2, #3
+
+    ldr r1, [r0]        @ Mode
+    mov r2, #0b11       @ P5, LED: Output
     lsl r2, #10
+    add r2, #0b11110000
     bic r1, r2
+
     mov r2, #1
     lsl r2, #10
+    add r2, #0b10100000 @ P2, P3, alternate
+    orr r1, r2
+
+    str r1, [r0]
+
+    add r0, #0x4
+    ldr r1, [r0]
+    mov r2, #0b101100    @ P2, P3, P5: pushpull
+    bic r1, r2
+    str r1, [r0]
+
+    add r0, #0x4        @ P2, P3, P5 high speed
+    ldr r1, [r0]
+    mov r2, #0x3
+    lsl r2, #6
+    add r2, #0xf
+    lsl r2, #4
     orr r1, r2
     str r1, [r0]
 
-    add r0, #0x4        @ P5 PushPull
+    add r0, #0x4        @ P2, P3, P5 pullup-neither
     ldr r1, [r0]
-    mov r2, #1
-    lsl r2, #5
+    mov r2, #0x3
+    lsl r2, #6
+    add r2, #0xf
+    lsl r2, #4
     bic r1, r2
     str r1, [r0]
 
-    add r0, #0x4        @ P5 high speed
+    add r0, #0x14       @ P2, P3 alternate function
     ldr r1, [r0]
-    mov r2, #3
-    lsl r2, #10
+    mov r2, #0xff
+    lsl r2, #8
+    bic r1, r2
+    mov r2, #0x11
+    lsl r2, #8
     orr r1, r2
     str r1, [r0]
 
-    add r0, #0x4        @ P5 pullup-neither
-    ldr r1, [r0]
-    mov r2, #3
-    lsl r2, #10
-    bic r1, r2
+    ldr r0, =0x40004400 @ USART2
+    mov r1, #0b1101     @ Usart c1 bits
+    str r1, [r0]
+    add r0, #0xC        @ Baud rate
+    ldr r1, =833        @ 8e6 (STM32 clock Hz) / 9600 bps
     str r1, [r0]
 
     NEXT
+
+# Emit char to serial-out
+# : emit ( char -- )
+defcode emit emit
+    ldr r0, =0x40004400 @ USART2
+    add r0, #28         @ isr
+# Busy-wait until ISR clears send
+1:
+    ldr r1, [r0]
+    mov r2, #0x80
+    and r1, r2
+    cmp r1, #0x80
+    bne 1b
+    add r0, #12         @ tdr
+    str TOS, [r0]       @ Write TOS value and consume
+    pop {TOS}
+    NEXT
+
+# Return char and true or false depending on if key is available in serial input
+# : key? ( -- c T | F )
+# XXX: Looks like I can't make a macro parameter be "key?".
+defcode key-p key_p
+    ldr r0, =0x40004400 @ USART2
+    add r0, #28         @ isr
+    ldr r1, [r0]
+    mov r2, #0x80
+    and r1, r2
+    cmp r1, #0x80
+    bne 1f
+    add r0, #8          @ rdr
+    ldr r1, [r0]
+    TOS_PUSH r1
+    mov r1, #0
+    push {TOS}
+    neg TOS, r1
+    NEXT
+1:                      @ No key
+    mov r1, #0
+    TOS_PUSH r1
+    NEXT
+
 
 # TODO: Use a parameter instead of hardcoding both on and off.
 defcode led-on led_on
