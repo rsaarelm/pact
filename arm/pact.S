@@ -230,6 +230,24 @@ defcode *, times
     mul TOS, r0
     NEXT
 
+################################ Flow control
+
+# Jump NIP to address in the cell next to the 'branch' one.
+defcode branch, branch
+    ldr NIP, [NIP]
+    NEXT
+
+# If top of stack is 0, do a branch
+defcode zbranch, zbranch
+    TOS_POP r0
+    cmp r0, #0
+    bne 1f
+    ldr NIP, [NIP]
+    NEXT
+1:
+    add NIP, #4         @ Jump over the branch address
+    NEXT
+
 ################################ Hardware stuff
 
 defconst rcc rcc 0x40021000
