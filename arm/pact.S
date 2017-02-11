@@ -57,9 +57,9 @@ _err:
 
 @ The NEXT macro ends machine code words by jumping to the next threaded code position.
 .macro NEXT
-    ldr r0, [r5]                @ Load next instruction to r0, increment NIP
-    add r5, #4
-    ldr r1, [r0]                @ Dereference codeword
+    ldr r0, [r5]                @ Next codeword address from NIP to r0
+    add r5, #4                  @ Increment NIP
+    ldr r1, [r0]                @ Dereference codeword address
     bx r1                       @ Jump to address
 .endm
 
@@ -108,6 +108,7 @@ code_pact_boot:
     .long exit
 
 @ Add two stack values
+.align 4
 add:
     .long add_code + 1
 add_code:
@@ -117,6 +118,7 @@ add_code:
     NEXT
 
 @ Save the next word to stack as literal
+.align 4
 lit:
     .long lit_code + 1
 lit_code:
