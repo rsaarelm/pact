@@ -150,11 +150,13 @@ docol:
 
 defword boot, pact_boot
 # Hardware test
-    .long init_hw, lit, 0x3f, emit, key, emit
+    .long init_hw
+1:
+    .long lit, 0x3f, emit, key, emit, lit, '\n', emit
     .long led_on
 # Test math and stack.
     .long lit, 10, lit, 3, minus, lit, 3, over, plus, lit, 2, times, swap, minus
-    .long exit
+    .long branch, 1b
 
 ################################ Memory operations
 
