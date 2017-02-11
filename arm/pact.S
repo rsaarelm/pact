@@ -152,28 +152,11 @@ exit:
     NEXT
 
 defword boot, pact_boot
-    .long init_hw
-    .long lit
-    .long 0x40
-    .long emit      @ Print to UART2
-    .long lit
-    .long 0x42
-    .long emit      @ Print to UART2
+# Hardware test
+    .long init_hw, lit, 0x40, emit, lit, 0x42, emit
     .long led_on
-    .long lit
-    .long 10
-    .long lit
-    .long 3
-    .long minus
-    .long lit
-    .long 3         @ 7 3
-    .long over      @ 7 3 7
-    .long plus      @ 7 10
-    .long lit
-    .long 2
-    .long times    @ 7 20
-    .long swap     @ 20 7
-    .long minus    @ 13
+# Test math and stack.
+    .long lit, 10, lit, 3, minus, lit, 3, over, plus, lit, 2, times, swap, minus
     .long exit
 
 ################################ Memory operations
