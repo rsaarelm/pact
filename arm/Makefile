@@ -1,6 +1,7 @@
 pact.bin: pact.elf
 	arm-none-eabi-objcopy -S -O binary $< $@
 	arm-none-eabi-size $<
+	md5sum $@
 
 pact.elf: pact.o
 	arm-none-eabi-ld -Ttext 0x08000000 -o $@ $<
