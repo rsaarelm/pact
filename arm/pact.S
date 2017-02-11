@@ -152,6 +152,8 @@ exit:
     NEXT
 
 defword boot, pact_boot
+    .long init_hw
+    .long led_on
     .long lit
     .long 10
     .long lit
@@ -192,6 +194,11 @@ defcode !, store
     NEXT
 
 ################################ Stack juggling
+
+# : dup ( x -- x x )
+defcode dup, dup
+    push {TOS}
+    NEXT
 
 # : swap ( x y -- y x )
 defcode swap, swap
@@ -260,3 +267,62 @@ defword enable, enable
     .long swap
     .long store
     .long exit
+
+# TODO Rewrite in Pact once we get the REPL going
+defcode init-hw, init_hw
+    ldr r0, =0x40021000 @ RCC
+    add r0, #0x14
+    ldr r1, [r0]
+    mov r2, #1
+    lsl r2, #17
+    orr r1, r2          @ Start GPIOA clock
+    str r1, [r0]
+
+    ldr r0, =0x48000000 @ GPIOA
+    ldr r1, [r0]        @ Pin P5 mode Output
+    mov r2, #3
+    lsl r2, #10
+    bic r1, r2
+    mov r2, #1
+    lsl r2, #10
+    orr r1, r2
+    str r1, [r0]
+
+    add r0, #0x4        @ P5 PushPull
+    ldr r1, [r0]
+    mov r2, #1
+    lsl r2, #5
+    bic r1, r2
+    str r1, [r0]
+
+    add r0, #0x4        @ P5 high speed
+    ldr r1, [r0]
+    mov r2, #3
+    lsl r2, #10
+    orr r1, r2
+    str r1, [r0]
+
+    add r0, #0x4        @ P5 pullup-neither
+    ldr r1, [r0]
+    mov r2, #3
+    lsl r2, #10
+    bic r1, r2
+    str r1, [r0]
+
+    NEXT
+
+# TODO: Use a parameter instead of hardcoding both on and off.
+defcode led-on led_on
+    ldr r0, =0x48000000 @ GPIOA
+    add r0, #0x18
+    mov r1, #0x20
+    str r1, [r0]
+    NEXT
+
+defcode led-off led_off
+    ldr r0, =0x48000000 @ GPIOA
+    add r0, #0x18
+    mov r1, #0x20
+    lsl r1, #16
+    str r1, [r0]
+    NEXT
