@@ -138,6 +138,8 @@ _start:
     ldr NIP, =pact_boot + 4
     b docol
 
+.ltorg
+
 # Inner interpreter for threaded Pact bytecode
 # NEXT jumps here, assume r0 will contain the current code word address
 docol:
