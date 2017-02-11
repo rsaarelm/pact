@@ -1,19 +1,9 @@
-@ r0
-@ r1
-@ r2
-@ r3
-@ r4
-@ r5            Pact next instruction pointer   (NIP)
-@ r6            Pact return stack pointer       (RSP)
-@ r7        avoid, ARM uses this for system calls
-@ r8
-@ r9        avoid, ARM may have special uses
-@ r10
-@ r11
-@ r12       avoid, ARM uses thes for intra-procedure calls
-@ r13:  sp  ARM stack pointer
-@ r14:  lr  ARM link register, holds return address from Branch with Link
-@ r15:  pc  ARM program counter
+@ Special registers used by the Pact interpreter:
+TOS .req r4  @ Top-of-stack register
+NIP .req r5  @ Next instruction pointer
+RSP .req r6  @ Return stack pointer (return stack is separate from the data stack)
+
+STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 
 RAM_START = 0x20000000
 RAM_LENGTH = 8192
@@ -57,42 +47,55 @@ _err:
 
 @ The NEXT macro ends machine code words by jumping to the next threaded code position.
 .macro NEXT
-    ldr r0, [r5]                @ Next codeword address from NIP to r0
-    add r5, #4                  @ Increment NIP
+    ldr r0, [NIP]               @ Next codeword address from NIP to r0
+    add NIP, #4                 @ Increment NIP
     ldr r1, [r0]                @ Dereference codeword address
     bx r1                       @ Jump to address
 .endm
 
 @ Push to return stack
 .macro PUSH_RSP reg
-    sub r6, #4
-    str \reg, [r6]
+    sub RSP, #4
+    str \reg, [RSP]
 .endm
 
 @ Pop from return stack
 .macro POP_RSP reg
-    ldr \reg, [r6]
-    add r6, #4
+    ldr \reg, [RSP]
+    add RSP, #4
+.endm
+
+@ Push TOS, move reg to TOS
+.macro TOS_PUSH reg
+    push {TOS}
+    mov TOS, \reg
+.endm
+
+@ Move TOS to reg, pop into TOS
+.macro TOS_POP reg
+    mov \reg, TOS
+    pop {TOS}
 .endm
 
 .global _start
 _start:
-    ldr r6, =RETURN_STACK_END       @ Initialize RSP
-    ldr r0, =pact_boot              @ Load initial word
-    ldr r5, =code_pact_boot
+    ldr RSP, =RETURN_STACK_END       @ Initialize RSP
+    ldr TOS, =STACK_UNDERFLOW
+    ldr r0, =pact_boot               @ Load initial word
+    ldr NIP, =code_pact_boot
     b docol
 
 @ Inner interpreter for threaded Pact bytecode
 @ NEXT jumps here, assume r0 will contain the current code word address
 docol:
-    PUSH_RSP r5                     @ Store next instruction on return stack
+    PUSH_RSP NIP                     @ Store next instruction on return stack
     add r0, #4
-    mov r5, r0                      @ Word after codeword -> NIP
+    mov NIP, r0                      @ Word after codeword -> NIP
     NEXT
 
 @ Exit a Pact word
 exit:
-    POP_RSP r5
+    POP_RSP NIP
     NEXT
 
 @ Test word, TODO: Better stuff.
@@ -112,8 +115,8 @@ code_pact_boot:
 add:
     .long add_code + 1
 add_code:
-    pop {r0, r1}
-    add r1, r0
+    TOS_POP r0
+    add TOS, r0
     push {r1}
     NEXT
 
@@ -122,7 +125,7 @@ add_code:
 lit:
     .long lit_code + 1
 lit_code:
-    ldr r1, [r5]
-    push {r1}
-    add r5, #4
+    ldr r1, [NIP]
+    TOS_PUSH r1
+    add NIP, #4     @ The literal wasn't a command, advance NIP past it
     NEXT
