@@ -148,14 +148,9 @@ docol:
     mov NIP, r0                      @ Word after codeword -> NIP
     NEXT
 
-# Exit a Pact word
-exit:
-    POP_RSP NIP
-    NEXT
-
 defword boot, pact_boot
 # Hardware test
-    .long init_hw, lit, 0x40, emit, lit, 0x42, emit
+    .long init_hw, lit, 0x3f, emit, key, emit
     .long led_on
 # Test math and stack.
     .long lit, 10, lit, 3, minus, lit, 3, over, plus, lit, 2, times, swap, minus
@@ -246,6 +241,11 @@ defcode *, times
     NEXT
 
 ################################ Flow control
+
+# Exit a Pact word
+defcode exit, exit
+    POP_RSP NIP
+    NEXT
 
 # Jump NIP to address in the cell next to the 'branch' one.
 defcode branch, branch
@@ -392,22 +392,26 @@ defcode key-p key_p
     ldr r0, =0x40004400 @ USART2
     add r0, #28         @ isr
     ldr r1, [r0]
-    mov r2, #0x80
+    mov r2, #0x20
     and r1, r2
-    cmp r1, #0x80
-    bne 1f
+    cmp r1, #0x20
+    bne 1f              @ No key, jump away
     add r0, #8          @ rdr
-    ldr r1, [r0]
+    ldr r1, [r0]        @ Load key, push to stack
     TOS_PUSH r1
-    mov r1, #0
-    push {TOS}
-    neg TOS, r1
+    push {TOS}          @ Put T flag to TOS
+    mov TOS, #0
+    sub TOS, #1
     NEXT
 1:                      @ No key
-    mov r1, #0
+    mov r1, #0          @ Put F flag to TOS
     TOS_PUSH r1
     NEXT
 
+# Wait for key input.
+defword key, key
+1:
+    .long key_p, zbranch, 1b, exit
 
 # TODO: Use a parameter instead of hardcoding both on and off.
 defcode led-on led_on
