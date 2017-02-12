@@ -155,7 +155,7 @@ defword "boot", pact_boot
     .long led_on
 # Test math and stack.
     .long lit, 10, lit, 3, minus, lit, 3, over, plus, lit, 2, times, swap, minus
-    .long branch, 1b
+    .long branch, 1b - .
 
 ################################ Memory operations
 
@@ -248,9 +248,10 @@ defcode "exit", exit
     POP_RSP NIP
     NEXT
 
-# Jump NIP to address in the cell next to the 'branch' one.
+# Offset NIP by the address in the cell after the 'branch' one.
 defcode "branch", branch
-    ldr NIP, [NIP]
+    ldr r0, [NIP]
+    add NIP, r0
     NEXT
 
 # If top of stack is 0, do a branch
@@ -258,7 +259,8 @@ defcode "zbranch", zbranch
     TOS_POP r0
     cmp r0, #0
     bne 1f
-    ldr NIP, [NIP]
+    ldr r0, [NIP]
+    add NIP, r0
     NEXT
 1:
     add NIP, #4         @ Jump over the branch address
