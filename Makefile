@@ -20,5 +20,8 @@ debug: deploy
 	# Spawn a debug server in a separate window
 	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
+bootstrap: bootstrap.c
+	gcc -m32 bootstrap.c -o bootstrap
+
 clean:
-	rm -f *.bin *.elf *.o
+	rm -f *.bin *.elf *.o bootstrap
