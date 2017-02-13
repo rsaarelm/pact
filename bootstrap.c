@@ -12,9 +12,14 @@ typedef uint32_t cell;
 
 static_assert(sizeof(cell) == sizeof(void*), "Cell size must be machine word size");
 
-#define CELLS(bytes) ((cell*)(bytes))
+#define CELL(a) ((cell*)(&a))
 
 struct {
+    /* Next codeword address in C memory */
+    void (*next_code)();
+    /* Next instruction pointer in VM memory, location is expected to contain
+     * an address to a C function, will be moved to next_code. */
+    size_t nip;
     /* Stack pointer */
     size_t sp;
     /* Pointer to latest word. */
@@ -36,36 +41,44 @@ void init() {
 
 cell pop() {
     assert(vm.sp <= RAM_SIZE - 1 - sizeof(cell));
-    cell ret = CELLS(vm.mem)[vm.sp / sizeof(cell)];
+    cell ret = *CELL(vm.mem[vm.sp]);
     vm.sp += sizeof(cell);
     return ret;
 }
 
 void push(cell c) {
     vm.sp -= sizeof(cell);
-    CELLS(vm.mem)[vm.sp / sizeof(cell)] = c;
+    *CELL(vm.mem[vm.sp]) = c;
+}
+
+/* Advance VM to next code word */
+void next() {
+    vm.nip += sizeof(cell);
+    vm.next_code = (void*)*CELL(vm.mem[vm.nip]);
+}
+
+void align() {
+    while (vm.here % sizeof(cell) != 0)
+        vm.here++;
 }
 
 /* Add a definition for a native code word. */
 void defcode(const char* name, void (*fn)()) {
-    assert(vm.here % sizeof(cell) == 0);
+    align();
     
     *((cell*)(vm.mem + vm.here)) = vm.current_word;
     vm.current_word = vm.here;
     vm.here += sizeof(cell);
-
 }
 
 /* Pact-style instructions */
 void fetch() {
-    cell addr = pop();
-    push(*((cell*)(vm.mem + addr)));
+    push(*CELL(vm.mem[pop()]));
 }
 
 void set() {
     cell x = pop();
-    cell addr = pop();
-    *((cell*)(vm.mem + addr)) = x;
+    *CELL(vm.mem[pop()]) = x;
 }
 
 void key() {
