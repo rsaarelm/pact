@@ -1,1 +1,3 @@
-pact
+*.bin
+*.elf
+*.o

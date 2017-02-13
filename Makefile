@@ -1,10 +1,24 @@
-all: pact vm-example
+pact.bin: pact.elf
+	arm-none-eabi-objcopy -S -O binary $< $@
+	arm-none-eabi-size $<
+	md5sum $@
 
-pact: pact.asm
-	fasm pact.asm
+pact.elf: pact.o
+	arm-none-eabi-ld -Ttext 0x08000000 -o $@ $<
 
-vm-example: vm-example.cpp
-	g++ --std=c++11 vm-example.cpp -o vm-example
+%.o: %.S Makefile
+	arm-none-eabi-as -g -mthumb -mcpu=cortex-m0 -o $@ $<
+
+dump: pact.elf
+	arm-none-eabi-objdump --demangle --disassemble $<
+
+deploy: pact.bin
+	# Assume you're using a STM32 board.
+	st-flash write pact.bin 0x08000000
+
+debug: deploy
+	# Spawn a debug server in a separate window
+	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
 clean:
-	rm -f pact vm-example image.bin
+	rm -f *.bin *.elf *.o

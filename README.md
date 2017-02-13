@@ -1,5 +1,10 @@
 Compact programming experiments
 
-Basis is Jones Forth tutorial, ported to FASM assembly and then
-rewritten to implement the elements leading up to a working
-interpreter in bytecode pseudo-Forth instead of raw assembly.
+Experimenting with STM-32 Nucleo F030R8 board.
+
+Tweaking will be needed to make this run on something else.
+
+Tools needed:
+    arm-none-eabi-gcc
+    stlink              (for debugging)
+    arm-none-eabi-gdb   (for debugging)
