@@ -3,12 +3,14 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 typedef uint32_t cell;
 
 static_assert(sizeof(cell) == sizeof(void*), "Only 32-bit binaries are supported.");
 
 #define CELL(addr) *((cell*)((uint8_t*)&mem + addr))
+#define POS(field) ((void*)&field - (void*)&mem)
 
 /* The whole structure is one big blob of memory, and is interpreted as a
  * zero-indexed byte array by the VM code. The struct fields show the places of
@@ -18,13 +20,6 @@ static_assert(sizeof(cell) == sizeof(void*), "Only 32-bit binaries are supported
  * are determined by the address of the following field.
  */
 struct {
-    /* Next instruction pointer in VM memory, location is expected to contain
-     * an address to a C function, will be moved to next_code. */
-    cell nip;
-    /* Stack pointer */
-    cell sp;
-    /* Return stack pointer */
-    cell rsp;
     /* Pointer to latest word. */
     cell current_word;
     /* Current memory cursor position. */
@@ -35,10 +30,19 @@ struct {
     uint8_t ret[16 * 1024];
     /* Scratch buffer */
     uint8_t buffer[8 * 1024];
+    /* Next instruction pointer in VM memory, location is expected to contain
+     * an address to a C function, will be moved to next_code. */
+    cell nip;
+    /* Stack pointer */
+    cell sp;
+    /* Return stack pointer */
+    cell rsp;
 } mem;
 
-#define STACK_TOP ((void*)&mem.ret - (void*)&mem)
-#define RSP_TOP ((void*)&mem.buffer - (void*)&mem)
+#define STACK_TOP POS(mem.ret)
+#define RSP_TOP POS(mem.buffer)
+#define BUFFER_TOP POS(mem.nip)
+#define BUFFER_SIZE (POS(mem.nip) - POS(mem.buffer))
 
 void init() {
     memset(&mem, 0, sizeof(mem));
@@ -130,11 +134,38 @@ void emit() {
     putc(c, stdout);
 }
 
+/* : word ( -- addr )
+ * Read whitespace-separated token into scratch buffer as null-terminated string.
+ */
+void word() {
+    int c = ' ';
+
+    /* Eat whitespace */
+    while (isspace(c))
+        c = getc(stdin);
+
+    char* input = (char*)&mem.buffer;
+    for (size_t i = 0; i < BUFFER_SIZE - 1; i++) {
+        *input++ = c;
+        c = getc(stdin);
+        if (isspace(c))
+            break;
+    }
+    *input = 0;
+    push(POS(mem.buffer));
+}
 
 
 int main(int argc, char* argv[]) {
     init();
 
     printf("Hello, world!\n");
+    for (;;) {
+        printf("? ");
+        fflush(stdout);
+        word();
+        pop();
+        printf("%s\n", mem.buffer);
+    }
     return 0;
 }
