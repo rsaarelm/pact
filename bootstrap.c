@@ -22,6 +22,8 @@ struct {
     size_t nip;
     /* Stack pointer */
     size_t sp;
+    /* Return stack pointer */
+    size_t rsp;
     /* Pointer to latest word. */
     size_t current_word;
     /* Current memory cursor position. */
@@ -36,11 +38,12 @@ struct {
 
 void init() {
     memset(&vm, 0, sizeof(vm));
-    vm.sp = RAM_SIZE - 1;
+    vm.sp = RAM_SIZE;
+    vm.rsp = RETURN_STACK_SIZE;
 }
 
 cell pop() {
-    assert(vm.sp <= RAM_SIZE - 1 - sizeof(cell));
+    assert(vm.sp < RAM_SIZE);
     cell ret = *CELL(vm.mem[vm.sp]);
     vm.sp += sizeof(cell);
     return ret;
@@ -51,10 +54,30 @@ void push(cell c) {
     *CELL(vm.mem[vm.sp]) = c;
 }
 
+cell rsp_pop() {
+    assert(vm.rsp < RETURN_STACK_SIZE);
+    cell ret = *CELL(vm.ret[vm.rsp]);
+    vm.rsp += sizeof(cell);
+    return ret;
+}
+
+void rsp_push(cell c) {
+    vm.rsp -= sizeof(cell);
+    *CELL(vm.ret[vm.rsp]) = c;
+}
+
+
 /* Advance VM to next code word */
 void next() {
-    vm.nip += sizeof(cell);
     vm.next_code = (void*)*CELL(vm.mem[vm.nip]);
+    vm.nip += sizeof(cell);
+}
+
+/* Bytecode inner interpreter */
+void docol() {
+    // Store next instruction pointer on return stack.
+    rsp_push(vm.nip);
+    // TODO: Figure out the dereferencing thing here...
 }
 
 void align() {
