@@ -4,104 +4,121 @@
 #include <string.h>
 #include <assert.h>
 
-#define RAM_SIZE (1 << 20)
-#define RETURN_STACK_SIZE (1 << 14)
-#define BUFFER_SIZE (1 << 12)
-
 typedef uint32_t cell;
 
-static_assert(sizeof(cell) == sizeof(void*), "Cell size must be machine word size");
+static_assert(sizeof(cell) == sizeof(void*), "Only 32-bit binaries are supported.");
 
-#define CELL(a) ((cell*)(&a))
+#define CELL(addr) *((cell*)((uint8_t*)&mem + addr))
 
+/* The whole structure is one big blob of memory, and is interpreted as a
+ * zero-indexed byte array by the VM code. The struct fields show the places of
+ * variables or regions needed by the VM code.
+ *
+ * The order of the fields is important, end of stack and end of return stack
+ * are determined by the address of the following field.
+ */
 struct {
-    /* Next codeword address in C memory */
-    void (*next_code)();
     /* Next instruction pointer in VM memory, location is expected to contain
      * an address to a C function, will be moved to next_code. */
-    size_t nip;
+    cell nip;
     /* Stack pointer */
-    size_t sp;
+    cell sp;
     /* Return stack pointer */
-    size_t rsp;
+    cell rsp;
     /* Pointer to latest word. */
-    size_t current_word;
+    cell current_word;
     /* Current memory cursor position. */
-    size_t here;
+    cell here;
     /* RAM memory (data stack goes to the top) */
-    uint8_t mem[RAM_SIZE];
+    uint8_t ram[256 * 1024];
     /* Return stack */
-    uint8_t ret[RETURN_STACK_SIZE];
+    uint8_t ret[16 * 1024];
     /* Scratch buffer */
-    uint8_t buffer[BUFFER_SIZE];
-} vm;
+    uint8_t buffer[8 * 1024];
+} mem;
+
+#define STACK_TOP ((void*)&mem.ret - (void*)&mem)
+#define RSP_TOP ((void*)&mem.buffer - (void*)&mem)
 
 void init() {
-    memset(&vm, 0, sizeof(vm));
-    vm.sp = RAM_SIZE;
-    vm.rsp = RETURN_STACK_SIZE;
+    memset(&mem, 0, sizeof(mem));
+    mem.sp = STACK_TOP;
+    mem.rsp = RSP_TOP;
 }
 
 cell pop() {
-    assert(vm.sp < RAM_SIZE);
-    cell ret = *CELL(vm.mem[vm.sp]);
-    vm.sp += sizeof(cell);
+    assert(mem.sp < STACK_TOP);
+    cell ret = CELL(mem.sp);
+    mem.sp += sizeof(cell);
     return ret;
 }
 
 void push(cell c) {
-    vm.sp -= sizeof(cell);
-    *CELL(vm.mem[vm.sp]) = c;
+    mem.sp -= sizeof(cell);
+    CELL(mem.sp) = c;
 }
 
 cell rsp_pop() {
-    assert(vm.rsp < RETURN_STACK_SIZE);
-    cell ret = *CELL(vm.ret[vm.rsp]);
-    vm.rsp += sizeof(cell);
+    assert(mem.rsp < RSP_TOP);
+    cell ret = CELL(mem.rsp);
+    mem.rsp += sizeof(cell);
     return ret;
 }
 
 void rsp_push(cell c) {
-    vm.rsp -= sizeof(cell);
-    *CELL(vm.ret[vm.rsp]) = c;
+    mem.rsp -= sizeof(cell);
+    CELL(mem.rsp) = c;
 }
-
 
 /* Advance VM to next code word */
 void next() {
-    vm.next_code = (void*)*CELL(vm.mem[vm.nip]);
-    vm.nip += sizeof(cell);
+    /*
+    mem.next_code = // TODO
+    mem.nip += sizeof(cell);
+    */
 }
 
 /* Bytecode inner interpreter */
 void docol() {
     // Store next instruction pointer on return stack.
-    rsp_push(vm.nip);
+    rsp_push(mem.nip);
     // TODO: Figure out the dereferencing thing here...
 }
 
 void align() {
-    while (vm.here % sizeof(cell) != 0)
-        vm.here++;
+    while (mem.here % sizeof(cell) != 0)
+        mem.here++;
 }
 
 /* Add a definition for a native code word. */
 void defcode(const char* name, void (*fn)()) {
+    /* TODO: Maybe this won't be needed, just recognize the names of HW
+     * instructions directly in the VM interpreter instead of having them in
+     * the mem dictionary. So probably want to remove this. */
     align();
     
-    *((cell*)(vm.mem + vm.here)) = vm.current_word;
-    vm.current_word = vm.here;
-    vm.here += sizeof(cell);
+    CELL(mem.here) = mem.current_word;
+    mem.current_word = mem.here;
+    mem.here += sizeof(cell);
+
+    /* Write the null-terminated name. */
+    strcpy((void*)(&mem + mem.here), name);
+    mem.here += strlen(name) + 1;
+
+    /* Write the code address */
+    align();
+    CELL(mem.here) = (cell)fn;
+    mem.here += sizeof(cell);
 }
 
 /* Pact-style instructions */
 void fetch() {
-    push(*CELL(vm.mem[pop()]));
+    push(CELL(pop()));
 }
 
 void set() {
-    cell x = pop();
-    *CELL(vm.mem[pop()]) = x;
+    cell addr = pop();
+    CELL(addr) = pop();
 }
 
 void key() {
