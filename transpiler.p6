@@ -1,5 +1,14 @@
 #!/usr/bin/env perl6
 
+#| Turn a Pact symbol to an assembler symbol
+sub mangle(Str $s) {
+    die("Mangling immediate word $s") if $s ~~ m/ ';' || ':' || 'if' || 'then' /;
+
+    # TODO: convert foo-bar to foo_bar
+    # TODO: Match with special dictionary, '@' -> 'fetch' etc.
+    # TODO: convert (xyzzy) to xyzzy_aux
+}
+
 my @words = gather for lines() {
     my $in_comment = False;
 
