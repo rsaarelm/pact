@@ -20,5 +20,8 @@ debug: deploy
 	# Spawn a debug server in a separate window
 	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
+bootstrap.S: bootstrap.pact transpiler.p6
+	./transpiler.p6 < $< > $@
+
 clean:
-	rm -f *.bin *.elf *.o
+	rm -f *.bin *.elf *.o bootstrap.S
