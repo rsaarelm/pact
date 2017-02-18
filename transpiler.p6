@@ -1,5 +1,21 @@
 #!/usr/bin/env perl6
 
+# Not using the macro in the main .S file because GAS keeps getting weird about
+# stuff in the string macro argument.
+sub defword(Str $word, Str $sym) {
+say qq:to/END/;
+.align 2
+name_$sym:
+    .long _latest_word
+    .byte 0
+    .asciz "$word"
+_latest_word = name_$sym
+.align 2
+$sym:
+    .long docol + 1
+END
+}
+
 sub is_immediate(Str $word) {
     return <; : if then>.contains($word) && $word;
 }
@@ -70,7 +86,7 @@ sub emit(@words) {
             die "Nested word definition" if $in_def;
             my $word = @w.pop();
             my $sym = mangle($word);
-            say "defword \"$word\", $sym";
+            defword($word, $sym);
             $in_def = True;
         } elsif $x eq ';' {
             die "Unmatched word end" unless $in_def;
