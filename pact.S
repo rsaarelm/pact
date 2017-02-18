@@ -223,6 +223,16 @@ defcode "or", or
     orr TOS, r0
     NEXT
 
+# : <0 ( x -- x<0 )
+defcode "<0", ltz
+    cmp TOS, #0
+    mov TOS, #0
+    bmi 1f
+    NEXT            @ TOS is 0, false
+1:
+    sub TOS, #1     @ Make TOS -1, true
+    NEXT
+
 # : + ( x y -- x+y )
 defcode "+", plus
     TOS_POP r0
