@@ -8,13 +8,22 @@ sub is_immediate(Str $word) {
 sub mangle(Str $s) {
     die("Mangling immediate word $s") if is_immediate($s);
 
-    my %predef = <
+    my %predef = flat <
         @ fetch
         ! store
         + plus
         - minus
         * times
-    >;
+        = equals
+        cell+ cell_inc
+    >, (
+        # Separate list for words that contain actual <, >.
+        # Looks like they can be escaped with \ in the <..> list,
+        # but the Vim syntax mode won't understand that and messes up the file.
+        '<', 'lt',
+        '<0', 'ltz',
+        '<=', 'lte',
+    );
 
     return %predef{$s} if %predef{$s};
 
@@ -47,11 +56,43 @@ sub words() {
     };
 }
 
+sub emit(@words) {
+    my @w = @words.reverse();
+
+    my $in_def = False;
+
+    while @w {
+        my $x = @w.pop();
+        next if not $x;
+
+        # Word definition.
+        if $x eq ':' {
+            die "Nested word definition" if $in_def;
+            my $word = @w.pop();
+            my $sym = mangle($word);
+            say "defword \"$word\", $sym";
+            $in_def = True;
+        } elsif $x eq ';' {
+            die "Unmatched word end" unless $in_def;
+            say '';
+            $in_def = False;
+        } orwith +$x {
+            # Number literal
+            say ".long lit";
+            say ".long $x";
+        } else {
+            # TODO: Handle immediate control words.
+            my $sym = mangle($x);
+            say ".long $sym";
+        }
+    }
+}
+
 sub MAIN(Bool :$test = False) {
     if ($test) {
         test();
     } else {
-        for words() { .say }
+        emit(words());
     }
 }
 
