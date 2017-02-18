@@ -31,6 +31,9 @@ sub mangle(Str $s) {
         - minus
         * times
         = equals
+        . dot
+        1+ incr
+        1- decr
         cell+ cell_inc
     >, (
         # Separate list for words that contain actual <, >.
@@ -46,6 +49,10 @@ sub mangle(Str $s) {
     my $ret = $s;
 
     $ret = $ret.subst(/'-'/, '_');
+    $ret = $ret.subst(/'?'/, 'p');
+    $ret = $ret.subst(/'>'/, 'to');
+    $ret = $ret.subst(/'1'/, 'one');
+    $ret = $ret.subst(/'2'/, 'two');
 
     # '(foo)' => 'foo_aux'
     if $ret ~~ / '(' (.*) ')' / {
@@ -76,6 +83,8 @@ sub emit(@words) {
     my @w = @words.reverse();
 
     my $in_def = False;
+    my $current_word = False;
+    my $current_sym = False;
 
     while @w {
         my $x = @w.pop();
@@ -84,14 +93,25 @@ sub emit(@words) {
         # Word definition.
         if $x eq ':' {
             die "Nested word definition" if $in_def;
-            my $word = @w.pop();
-            my $sym = mangle($word);
-            defword($word, $sym);
+            $current_word = @w.pop();
+            $current_sym = mangle($current_word);
+            defword($current_word, $current_sym);
             $in_def = True;
         } elsif $x eq ';' {
             die "Unmatched word end" unless $in_def;
             say '';
             $in_def = False;
+            $current_word = False;
+            $current_sym = False;
+        } elsif $x eq 'tail-recurse' {
+            # Recursion without expecting to return, emit a branch and don't add to stack.
+            $current_sym or die("Recurse outside word definition");
+            say '.long branch';
+            say ".long ($current_sym - .)";
+        } elsif $x eq 'recurse' {
+            # Recursion without expecting to return, emit a branch and don't add to stack.
+            $current_sym or die("Recurse outside word definition");
+            say ".long $current_sym";
         } orwith +$x {
             # Number literal
             say ".long lit";
@@ -122,8 +142,8 @@ sub test() {
     is mangle('forklift'),  'forklift', "Don't match the 'if' immediate word inside";
     is mangle('foo'),       'foo';
     is mangle('_foo'),      '_foo';
-    is mangle('foo_2'),      'foo_2';
-    throws-like { EVAL q[mangle('2foo')] }, $, "Didn't fail on invalid initial char";
+    is mangle('foo_8'),      'foo_8';
+    throws-like { EVAL q[mangle('8foo')] }, $, "Didn't fail on invalid initial char";
     is mangle('(foo)'),     'foo_aux';
     is mangle('foo-bar'),   'foo_bar';
     is mangle('+'),         'plus';
