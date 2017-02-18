@@ -23,5 +23,8 @@ debug: deploy
 bootstrap.S: bootstrap.pact transpiler.p6
 	./transpiler.p6 < $< > $@
 
+test-transpiler: transpiler.p6
+	prove -fe ./$< --test
+
 clean:
 	rm -f *.bin *.elf *.o bootstrap.S
