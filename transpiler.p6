@@ -1,13 +1,34 @@
 #!/usr/bin/env perl6
 
+sub is_immediate(Str $word) {
+    return <; : if then>.contains($word) && $word;
+}
+
 #| Turn a Pact symbol to an assembler symbol
 sub mangle(Str $s) {
-    die("Mangling immediate word $s") if $s ~~ m/ ';' || ':' || 'if' || 'then' /;
+    die("Mangling immediate word $s") if is_immediate($s);
 
-    # TODO: convert foo-bar to foo_bar
-    # TODO: Match with special dictionary, '@' -> 'fetch' etc.
-    # TODO: convert (xyzzy) to xyzzy_aux
-    return $s;
+    my %predef = <
+        @ fetch
+        ! store
+        + plus
+        - minus
+        * times
+    >;
+
+    return %predef{$s} if %predef{$s};
+
+    my $ret = $s;
+
+    $ret = $ret.subst(/'-'/, '_');
+
+    # '(foo)' => 'foo_aux'
+    if $ret ~~ / '(' (.*) ')' / {
+        $ret = $0 ~ '_aux';
+    }
+
+    die("Failed to sanitize $s") unless $ret ~~ /^<alpha><alnum>*$/;
+    return $ret;
 }
 
 sub words() {
@@ -37,12 +58,15 @@ sub MAIN(Bool :$test = False) {
 sub test() {
     use Test;
 
-    plan 10;
+    plan 13;
     throws-like { EVAL q[mangle(':')] }, $, "Didn't filter out immediate word";
     throws-like { EVAL q[mangle('if')] }, $, "Didn't filter out immediate word";
-    is mangle(''),          '';
-    is mangle('foo'),       'foo';
+    throws-like { EVAL q[mangle('')] }, $, "Didn't fail on empty word";
     is mangle('forklift'),  'forklift', "Don't match the 'if' immediate word inside";
+    is mangle('foo'),       'foo';
+    is mangle('_foo'),      '_foo';
+    is mangle('foo_2'),      'foo_2';
+    throws-like { EVAL q[mangle('2foo')] }, $, "Didn't fail on invalid initial char";
     is mangle('(foo)'),     'foo_aux';
     is mangle('foo-bar'),   'foo_bar';
     is mangle('+'),         'plus';
