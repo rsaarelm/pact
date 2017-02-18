@@ -387,7 +387,7 @@ defcode "key?" key_p
 # Wait for key input.
 defword "key", key
 1:
-    .long key_p, zbranch, 1b, exit
+    .long key_p, zbranch, 1b - ., exit
 
 # TODO: Use a parameter instead of hardcoding both on and off.
 defcode "led-on" led_on
