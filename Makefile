@@ -6,7 +6,7 @@ pact.bin: pact.elf
 pact.elf: pact.o
 	arm-none-eabi-ld -Ttext 0x08000000 -o $@ $<
 
-%.o: %.S Makefile
+pact.o: pact.S bootstrap.S Makefile
 	arm-none-eabi-as -g -mthumb -mcpu=cortex-m0 -o $@ $<
 
 dump: pact.elf

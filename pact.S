@@ -414,3 +414,5 @@ defcode "led-off" led_off
     lsl r1, #16
     str r1, [r0]
     NEXT
+
+.include "bootstrap.S"
