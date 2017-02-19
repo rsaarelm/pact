@@ -21,7 +21,7 @@ debug: deploy
 	st-util & PID=$$!; arm-none-eabi-gdb -x gdbinit pact.elf; kill $$PID
 
 bootstrap.S: bootstrap.pact transpiler.p6
-	./transpiler.p6 < $< > $@
+	./transpiler.p6 < $< > $@ || ( rm -f $@; false )
 
 test-transpiler: transpiler.p6
 	prove -fe ./$< --test
