@@ -105,6 +105,7 @@ sub emit(@words) {
             $in_def = True;
         } elsif $x eq ';' {
             die "Unmatched word end" unless $in_def;
+            say '    .long exit';
             say '';
             $in_def = False;
             $current_word = False;
@@ -113,7 +114,7 @@ sub emit(@words) {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
             say '    .long branch';
-            say "    .long ($current_sym - .)";
+            say "    .long ($current_sym - . + 4)";
         } elsif $x eq 'recurse' {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
