@@ -112,25 +112,26 @@ sub emit(@words) {
         } elsif $x eq 'tail-recurse' {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
-            say '.long branch';
-            say ".long ($current_sym - .)";
+            say '    .long branch';
+            say "    .long ($current_sym - .)";
         } elsif $x eq 'recurse' {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
-            say ".long $current_sym";
+            say "    .long $current_sym";
         # TODO: Handle conditionals and looping immediate words.
         } elsif $x.substr(0, 1) eq '%' and (my $parsed_binary_literal = $x.substr(1).parse-base(2)) ~~ Numeric {
-            say ".long lit";
-            say ".long $parsed_binary_literal";
+            say "    .long lit";
+            say "    .long $parsed_binary_literal";
         } elsif $x.substr(0, 1) eq '$' and (my $parsed_hex_literal = $x.substr(1).parse-base(16)) ~~ Numeric {
-            say ".long lit";
-            say ".long $parsed_hex_literal";
+            say "    .long lit";
+            say "    .long $parsed_hex_literal";
         } elsif (my $parsed_decimal_literal = +$x) ~~ Numeric {
-            say ".long lit";
-            say ".long $parsed_decimal_literal";
+            say "    .long lit";
+            say "    .long $parsed_decimal_literal";
         } else {
+            # Regular word, mangle to asm-friendly format and emit.
             my $sym = mangle($x);
-            say ".long $sym";
+            say "    .long $sym";
         }
     }
 }
