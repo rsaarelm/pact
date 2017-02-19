@@ -133,6 +133,12 @@ sub emit(@words) {
             my $sym = mangle($x);
             say "    .long $sym";
         }
+
+        # XXX: Sometimes you get spam from the exception-throwy integer literal
+        # match branches. Try and catch it here.
+        CATCH {
+            when Failure { }
+        }
     }
 }
 
