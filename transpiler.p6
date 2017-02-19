@@ -35,6 +35,7 @@ sub mangle(Str $s) {
         1+ incr
         1- decr
         cell+ cell_inc
+        and and_
     >, (
         # Separate list for words that contain actual <, >.
         # Looks like they can be escaped with \ in the <..> list,

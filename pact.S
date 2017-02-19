@@ -223,6 +223,12 @@ defcode "or", or
     orr TOS, r0
     NEXT
 
+# : and ( x y -- x&y )
+defcode "and", and_
+    TOS_POP r0
+    and TOS, r0
+    NEXT
+
 # : <0 ( x -- x<0 )
 defcode "<0", ltz
     cmp TOS, #0
@@ -249,6 +255,12 @@ defcode "-", minus
 defcode "*", times
     TOS_POP r0
     mul TOS, r0
+    NEXT
+
+# : lshift ( x y -- x<<y )
+defcode "lshift", lshift
+    TOS_POP r0
+    lsl TOS, r0
     NEXT
 
 ################################ Flow control
