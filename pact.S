@@ -133,8 +133,8 @@ _latest_word = name_\sym
 _start:
     ldr RSP, =RETURN_STACK_END       @ Initialize RSP
     ldr TOS, =STACK_UNDERFLOW
-    ldr r0, =pact_boot               @ Load initial word
-    ldr NIP, =pact_boot + 4
+    ldr r0, =boot                    @ Load initial word
+    ldr NIP, =boot + 4
     b docol
 
 .ltorg
@@ -146,16 +146,6 @@ docol:
     add r0, #4
     mov NIP, r0                      @ Word after codeword -> NIP
     NEXT
-
-defword "boot", pact_boot
-# Hardware test
-    .long init_hw
-1:
-    .long lit, 0x3f, emit, key, emit, lit, '\n', emit
-    .long led_on
-# Test math and stack.
-    .long lit, 10, lit, 3, minus, lit, 3, over, plus, lit, 2, times, swap, minus
-    .long branch, 1b - .
 
 ################################ Memory operations
 
@@ -426,5 +416,7 @@ defcode "led-off" led_off
     lsl r1, #16
     str r1, [r0]
     NEXT
+
+.ltorg
 
 .include "bootstrap.S"

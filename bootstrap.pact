@@ -6,6 +6,8 @@
 : cell+ ( a -- a+cell-size ) 1 cell + ;
 
 
+: cr ( -- ) $a emit ;
+
 \\ Hardware logic
 
 : GPIO-BASE $40020000 ;
@@ -36,8 +38,13 @@
 
 : RCC-BASE $40021000 ;
 
-: start-clocks
+: start-clocks ( -- )
     RCC-BASE $14 + dup @ 17 bit or swap ! \ GPIOA
     RCC-BASE $20 + dup @ 14 bit or swap ! \ USART1
     RCC-BASE $1C + dup @ 17 bit or swap ! \ USART2
 ;
+
+: main-loop ( -- )
+    $3f emit key emit cr led-on tail-recurse ;
+
+: boot ( -- ) init-hw main-loop ;
