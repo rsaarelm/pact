@@ -86,6 +86,10 @@ sub emit(@words) {
     my $current_word = False;
     my $current_sym = False;
 
+    # TODO: put consecutive addrs (1:, 2:, ...) in jump stack when if or loop
+    # words encountered.
+    my @jump_stack;
+
     while @w {
         my $x = @w.pop();
         next if not $x;
@@ -112,12 +116,17 @@ sub emit(@words) {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
             say ".long $current_sym";
-        } orwith +$x {
-            # Number literal
+        # TODO: Handle conditionals and looping immediate words.
+        } elsif $x.substr(0, 1) eq '%' and (my $parsed_binary_literal = $x.substr(1).parse-base(2)) ~~ Numeric {
             say ".long lit";
-            say ".long $x";
+            say ".long $parsed_binary_literal";
+        } elsif $x.substr(0, 1) eq '$' and (my $parsed_hex_literal = $x.substr(1).parse-base(16)) ~~ Numeric {
+            say ".long lit";
+            say ".long $parsed_hex_literal";
+        } elsif (my $parsed_decimal_literal = +$x) ~~ Numeric {
+            say ".long lit";
+            say ".long $parsed_decimal_literal";
         } else {
-            # TODO: Handle immediate control words.
             my $sym = mangle($x);
             say ".long $sym";
         }
