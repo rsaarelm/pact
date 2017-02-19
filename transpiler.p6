@@ -50,6 +50,7 @@ sub mangle(Str $s) {
 
     $ret = $ret.subst(/'-'/, '_');
     $ret = $ret.subst(/'?'/, 'p');
+    $ret = $ret.subst(/'#'/, 'num');
     $ret = $ret.subst(/'>'/, 'to');
     $ret = $ret.subst(/'1'/, 'one');
     $ret = $ret.subst(/'2'/, 'two');
