@@ -53,8 +53,11 @@ sub mangle(Str $s) {
     $ret = $ret.subst(/'?'/, 'p');
     $ret = $ret.subst(/'#'/, 'num');
     $ret = $ret.subst(/'>'/, 'to');
-    $ret = $ret.subst(/'1'/, 'one');
-    $ret = $ret.subst(/'2'/, 'two');
+
+    # '1foo' => '_1foo'
+    if $ret ~~ / ^\d / {
+        $ret = '_' ~ $ret;
+    }
 
     # '(foo)' => 'foo_aux'
     if $ret ~~ / '(' (.*) ')' / {
@@ -162,9 +165,9 @@ sub test() {
     is mangle('foo'),       'foo';
     is mangle('_foo'),      '_foo';
     is mangle('foo_8'),      'foo_8';
-    throws-like { EVAL q[mangle('8foo')] }, $, "Didn't fail on invalid initial char";
     is mangle('(foo)'),     'foo_aux';
     is mangle('foo-bar'),   'foo_bar';
+    is mangle('1foo'),      '_1foo';
     is mangle('+'),         'plus';
     is mangle('@'),         'fetch';
     throws-like { EVAL q[mangle('<..=-=..>')] }, $, "Didn't fail on unknown unconvertable word";
