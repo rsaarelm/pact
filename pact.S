@@ -165,9 +165,9 @@ defcode "\@", fetch
 # Write value to address
 # : ! ( value addr -- )
 defcode "!", store
-    TOS_POP r0          @ The value
-    str r0, [TOS]       @ Address is at TOS
-    TOS_POP r0          @ Drop address
+    TOS_POP r0          @ The address
+    str TOS, [r0]       @ Value from TOS
+    TOS_POP r0          @ Drop value
     NEXT
 
 ################################ Stack juggling
