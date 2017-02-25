@@ -34,6 +34,7 @@ sub mangle(Str $s) {
         . dot
         1+ incr
         1- decr
+        =0 eqz
         cell+ cell_inc
         and and_
     >, (

@@ -1,10 +1,13 @@
-\ Bootstrap Pact code for the initial interpreter. Will be transpiled into symbolic assembly.
+\ Bootstrap Pact code for the initial interpreter. Will be
+\ transpiled into symbolic assembly.
+
+: =0 ( x -- !x ) if 0 else -1 then ;
 : < ( x y -- b ) - <0 ;
 : <= ( x y -- b ) - 1 - <0 ;
+: invert ( x -- ~x ) -1 xor ;
 
 : cell ( a -- cell-size*a ) 4 * ;
 : cell+ ( a -- a+cell-size ) 1 cell + ;
-
 
 : cr ( -- ) $a emit ;
 

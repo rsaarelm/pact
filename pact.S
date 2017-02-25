@@ -197,14 +197,10 @@ defcode "over", over
 
 ################################ Logic and arithmetic
 
-# : not ( x -- !x )
-defcode "not", not
-    cmp TOS, #0
-    bne 1f
-    sub TOS, #1     @ Make it -1 = 0xffffffff
-    NEXT
-1:
-    mov TOS, #0     @ zero any non-zero
+# : xor ( x y -- x^y )
+defcode "xor", xor
+    TOS_POP r0
+    eor TOS, r0
     NEXT
 
 # : or ( x y -- x|y )
