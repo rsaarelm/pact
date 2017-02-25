@@ -283,21 +283,6 @@ defcode "zbranch", zbranch
 # TODO Rewrite in Pact once we get the REPL going
 # This is pretty awful as is.
 defcode "init-hw", init_hw
-    ldr r0, =0x40021000 @ RCC
-    add r0, #0x14          @ Start GPIOA clock
-    ldr r1, [r0]
-    mov r2, #1
-    lsl r2, #17
-    orr r1, r2
-    str r1, [r0]
-
-    add r0, #0x8           @ Start USART2 clock
-    ldr r1, [r0]
-    mov r2, #1
-    lsl r2, #17
-    orr r1, r2
-    str r1, [r0]
-
     ldr r0, =0x48000000 @ GPIOA
 
     ldr r1, [r0]        @ Mode

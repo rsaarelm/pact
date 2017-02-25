@@ -47,4 +47,4 @@
 : main-loop ( -- )
     $3f emit key emit cr led-on tail-recurse ;
 
-: boot ( -- ) init-hw main-loop ;
+: boot ( -- ) start-clocks init-hw main-loop ;
