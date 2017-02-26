@@ -51,7 +51,8 @@ sub mangle(Str $s) {
     my $ret = $s;
 
     $ret = $ret.subst(/'-'/, '_');
-    $ret = $ret.subst(/'?'/, 'p');
+    $ret = $ret.subst(/'?'/, '_p');
+    $ret = $ret.subst(/'!'/, '_store');
     $ret = $ret.subst(/'#'/, 'num');
     $ret = $ret.subst(/'>'/, 'to');
 
