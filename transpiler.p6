@@ -99,10 +99,6 @@ sub emit(@words) {
     my $current_word = False;
     my $current_sym = False;
 
-    # TODO: put consecutive addrs (1:, 2:, ...) in jump stack when if or loop
-    # words encountered.
-    my @jump_stack;
-
     while @w {
         my $x = @w.pop();
         next if not $x;
@@ -130,7 +126,31 @@ sub emit(@words) {
             # Recursion without expecting to return, emit a branch and don't add to stack.
             $current_sym or die("Recurse outside word definition");
             say "    .long $current_sym";
-        # TODO: Handle conditionals and looping immediate words.
+        } elsif $x eq 'if' {
+            # XXX: Currently IF-ELSE-THEN is made using a hacked up address system that DOESN'T NEST.
+            # You can have only one lexical level of if statements in bootsrap code.
+            # Layered stuff should probably be factored into multiple words in any case.
+            #
+            # Label setup:
+            #
+            # IF: jump to ELSE (1f) branch if TOS is false
+            #   ( code for if branch here )
+            #   jump to THEN (2f)
+            # 1:
+            # ELSE
+            #   ( code for else branch )
+            # 1: ( for arriving directly from IF if there wasn't an ELSE )
+            # 2: ( for arriving from ELSE )
+            # THEN (end of IF-ELSE-THEN)
+            say "    .long zbranch";
+            say "    .long 1f - .";
+        } elsif $x eq 'else' {
+            say "    .long branch";
+            say "    .long 2f - .";
+            say "1:";
+        } elsif $x eq 'then' {
+            say "1:";
+            say "2:";
         } elsif $x.substr(0, 1) eq '%' and (my $parsed_binary_literal = atoi($x.substr(1), 2)) ~~ Numeric {
             say "    .long lit";
             say "    .long $parsed_binary_literal";
