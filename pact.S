@@ -195,6 +195,25 @@ defcode "over", over
     TOS_PUSH r0
     NEXT
 
+# : rot ( x y z -- y z x )
+defcode "rot", rot
+    TOS_POP r0
+    TOS_POP r1
+    TOS_POP r2
+    TOS_PUSH r1
+    TOS_PUSH r0
+    TOS_PUSH r2
+    NEXT
+
+# : pick ( x0 ... xn n -- x0 .. xn x0 )
+defcode "pick", pick
+    mov r0, SP      @ Top of data stack
+    mov r1, #4
+    mul TOS, r1     @ Multiply count by word length to get mem offset
+    add r0, TOS     @ Fetch stack value to TOS
+    ldr TOS, [r0]
+    NEXT
+
 ################################ Logic and arithmetic
 
 # : xor ( x y -- x^y )
@@ -247,6 +266,14 @@ defcode "*", times
 defcode "lshift", lshift
     TOS_POP r0
     lsl TOS, r0
+    NEXT
+
+# : rshift ( x y -- x>>y )
+defcode "rshift", rshift
+# XXX: Is this going to fail if shift length is 0? If so, need to add a check
+# here for 0
+    TOS_POP r0
+    lsr TOS, r0
     NEXT
 
 ################################ Flow control
