@@ -56,7 +56,7 @@
 
 \\ Hardware logic
 
-: GPIO-BASE $40020000 ;
+: GPIO-BASE $48000000 ;
 
 \ combine GPIO port and pin to single pin identifier
 : io ( gpio# pin# -- pin ) swap 8 lshift or ;
