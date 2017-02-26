@@ -136,6 +136,22 @@
     RCC-BASE $1C +  17 1 make-bits 1 bits! \ USART1
 ;
 
+: init-gpio ( -- )
+    USART2-TX 1 gpio-func
+    USART2-TX gpio-high-speed
+    USART2-TX gpio-pup-neither
+    USART2-TX gpio-pushpull
+
+    USART2-RX 1 gpio-func
+    USART2-RX gpio-high-speed
+    USART2-RX gpio-pup-neither
+    USART2-RX gpio-pushpull
+
+    USER-LED gpio-output
+    USER-LED gpio-pup-neither
+    USER-LED gpio-pushpull
+;
+
 : main-loop ( -- )
     $3f emit key emit cr led-on tail-recurse ;
 
