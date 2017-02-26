@@ -83,9 +83,9 @@
 : RCC-BASE $40021000 ;
 
 : start-clocks ( -- )
-    RCC-BASE $14 + dup @ 17 bit or swap ! \ GPIOA
-    RCC-BASE $20 + dup @ 14 bit or swap ! \ USART1
-    RCC-BASE $1C + dup @ 17 bit or swap ! \ USART2
+    1 17 make-bits 1 or  RCC-BASE $14 + bits! \ GPIOA
+    1 14 make-bits 1 or  RCC-BASE $20 + bits! \ USART1
+    1 17 make-bits 1 or  RCC-BASE $1C + bits! \ USART1
 ;
 
 : main-loop ( -- )
