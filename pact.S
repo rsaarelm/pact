@@ -383,7 +383,6 @@ defcode "emit" emit
 
 # Return char and true or false depending on if key is available in serial input
 # : key? ( -- c T | F )
-# XXX: Looks like I can't make a macro parameter be "key?".
 defcode "key?" key_p
     ldr r0, =0x40004400 @ USART2
     add r0, #28         @ isr
