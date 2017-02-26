@@ -132,8 +132,8 @@
 
 : start-clocks ( -- )
     RCC-BASE $14 +  17 1 make-bits 1 bits! \ GPIOA
-    RCC-BASE $20 +  14 1 make-bits 1 bits! \ USART1
-    RCC-BASE $1C +  17 1 make-bits 1 bits! \ USART1
+    RCC-BASE $18 +  14 1 make-bits 1 bits! \ USART1
+    RCC-BASE $1C +  17 1 make-bits 1 bits! \ USART2
 ;
 
 : init-gpio ( -- )
