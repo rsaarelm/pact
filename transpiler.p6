@@ -68,6 +68,14 @@ sub mangle(Str $s) {
     return $ret;
 }
 
+sub atoi(Str $str, $base=10) {
+    with try $str.parse-base($base) {
+        return $_;
+    } else {
+        return Any;
+    }
+}
+
 sub words() {
     return gather for lines() {
         my $in_comment = False;
@@ -123,25 +131,19 @@ sub emit(@words) {
             $current_sym or die("Recurse outside word definition");
             say "    .long $current_sym";
         # TODO: Handle conditionals and looping immediate words.
-        } elsif $x.substr(0, 1) eq '%' and (my $parsed_binary_literal = $x.substr(1).parse-base(2)) ~~ Numeric {
+        } elsif $x.substr(0, 1) eq '%' and (my $parsed_binary_literal = atoi($x.substr(1), 2)) ~~ Numeric {
             say "    .long lit";
             say "    .long $parsed_binary_literal";
-        } elsif $x.substr(0, 1) eq '$' and (my $parsed_hex_literal = $x.substr(1).parse-base(16)) ~~ Numeric {
+        } elsif $x.substr(0, 1) eq '$' and (my $parsed_hex_literal = atoi($x.substr(1), 16)) ~~ Numeric {
             say "    .long lit";
             say "    .long $parsed_hex_literal";
-        } elsif (my $parsed_decimal_literal = +$x) ~~ Numeric {
+        } elsif (my $parsed_decimal_literal = atoi($x)) ~~ Numeric {
             say "    .long lit";
             say "    .long $parsed_decimal_literal";
         } else {
             # Regular word, mangle to asm-friendly format and emit.
             my $sym = mangle($x);
             say "    .long $sym";
-        }
-
-        # XXX: Sometimes you get spam from the exception-throwy integer literal
-        # match branches. Try and catch it here.
-        CATCH {
-            when Failure { }
         }
     }
 }
