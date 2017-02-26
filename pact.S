@@ -431,22 +431,6 @@ defword "key", key
 1:
     .long key_p, zbranch, 1b - ., exit
 
-# TODO: Use a parameter instead of hardcoding both on and off.
-defcode "led-on" led_on
-    ldr r0, =0x48000000 @ GPIOA
-    add r0, #0x18
-    mov r1, #0x20
-    str r1, [r0]
-    NEXT
-
-defcode "led-off" led_off
-    ldr r0, =0x48000000 @ GPIOA
-    add r0, #0x18
-    mov r1, #0x20
-    lsl r1, #16
-    str r1, [r0]
-    NEXT
-
 .ltorg
 
 .include "bootstrap.S"

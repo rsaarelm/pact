@@ -79,8 +79,6 @@
 : USART2-RX GPIOA  3 io ;
 : USER-LED  GPIOA  5 io ;
 
-: RCC-BASE $40021000 ;
-
 \ GPIO layout
 \  $0: Port mode
 \  $4: Output type
@@ -130,6 +128,8 @@
     swap dup (gpio-mode) 2 bits!        ( alternate mode )
     (gpio-func) rot bits! ;
 
+: RCC-BASE $40021000 ;
+
 : start-clocks ( -- )
     RCC-BASE $14 +  17 1 make-bits 1 bits! \ GPIOA
     RCC-BASE $18 +  14 1 make-bits 1 bits! \ USART1
@@ -152,7 +152,9 @@
     USER-LED gpio-pushpull
 ;
 
-: main-loop ( -- )
-    $3f emit key emit cr led-on tail-recurse ;
+: led ( on? -- ) if USER-LED gpio-set else USER-LED gpio-clr then ;
 
-: boot ( -- ) start-clocks init-hw main-loop ;
+: main-loop ( -- )
+    $3f emit key emit cr  1 + dup 1 and led  tail-recurse ;
+
+: boot ( -- ) start-clocks init-hw 1 led 1 main-loop ;
