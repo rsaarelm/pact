@@ -38,7 +38,7 @@
 
 \ Make a 0-valued bitstring word with given bit count and left shift
 \ (The actual value can be applied with just an OR op to the 0bits.)
-: make-bits ( num-bits lshift -- 0bits ) 24 lshift swap 16 lshift or ;
+: make-bits ( lshift num-bits -- 0bits ) 16 lshift swap 24 lshift or ;
 
 : bits-mask ( bits -- zero-mask )
     dup 16 rshift $ff and 1 swap lshift 1 - swap 24 rshift lshift invert ;
@@ -49,15 +49,14 @@
 
 : apply-bits ( value bits -- value' ) unpack-bits rot and or ;
 
-\ Apply bitstring to memory address, leave bits outside the string intact.
-: bits! ( bits addr -- ) dup @ rot apply-bits swap ! ;
+\ Apply bitstring (combination of value and 0bits) to memory address,
+\ leave bits outside the string intact.
+: bits! ( addr 0bits value -- ) or swap dup @ rot apply-bits swap ! ;
+
 
 \\ Hardware logic
 
 : GPIO-BASE $40020000 ;
-
-\ turn a position into a bit mask
-: bit ( x -- 2^x ) 1 swap lshift ;
 
 \ combine GPIO port and pin to single pin identifier
 : io ( gpio# pin# -- pin ) swap 8 lshift or ;
@@ -68,24 +67,73 @@
 \ convert pin to gpio address
 : io-base ( pin -- addr ) $f00 and 2 lshift GPIO-BASE + ;
 
-\ GPIOA = 0, GPIOB = 1, ...
+\ Index for io (GPIOB is 1, GPIOC is 2 and so on..)
+: GPIOA 0 ;
 
 \ XXX: These should be compile-time constants, but we don't have real
 \ compile-time eval in bootstrap stage.
 
-: USART1-TX 0 9 io ;
-: USART1-RX 0 10 io ;
-: USART2-TX 0 2 io ;
-: USART2-RX 0 3 io ;
-
-: USER-LED 0 5 io ;
+: USART1-TX GPIOA  9 io ;
+: USART1-RX GPIOA 10 io ;
+: USART2-TX GPIOA  2 io ;
+: USART2-RX GPIOA  3 io ;
+: USER-LED  GPIOA  5 io ;
 
 : RCC-BASE $40021000 ;
 
+\ GPIO layout
+\  $0: Port mode
+\  $4: Output type
+\  $8: Output speed
+\  $C: Pullup/pulldown
+\ $10: Input data
+\ $14: Output data
+\ $18: Bit set / reset
+\ $1C: Alternate function low
+\ $20: Alternate function high
+\ $28: Port bit reset
+
+: (gpio-mode) ( pin -- addr 0bits )
+    dup io-base swap io# 2 * 2 make-bits ;
+: (gpio-output) ( pin -- addr 0bits )
+    dup io-base $4 + swap io# 1 make-bits ;
+: (gpio-speed) ( pin -- addr 0bits )
+    dup io-base $8 + swap io# 2 * 2 make-bits ;
+: (gpio-pup) ( pin -- addr 0bits )
+    dup io-base $C + swap io# 2 * 2 make-bits ;
+: (gpio-set) ( pin -- addr 0bits )
+    dup io-base $18 + swap io# 1 make-bits ;
+: (gpio-clr) ( pin -- addr 0bits )
+    dup io-base $18 + swap io# 16 + 1 make-bits ;
+: (gpio-func) ( pin -- addr 0bits )
+    dup io-base over io# 8 < if $1C else $20 then +
+    swap io# 7 and 4 * 4 make-bits ;
+
+
+\ Drive pin high
+: gpio-set ( pin -- ) (gpio-set) 1 bits! ;
+
+\ Drive pin low
+: gpio-clr ( pin -- ) (gpio-clr) 1 bits! ;
+
+: gpio-pushpull ( pin -- ) (gpio-output) 0 bits! ;
+
+: gpio-pup-neither ( pin -- ) (gpio-pup) 0 bits! ;
+
+: gpio-high-speed ( pin -- ) (gpio-speed) 3 bits! ;
+
+: gpio-input ( pin -- ) (gpio-mode) 0 bits! ;
+
+: gpio-output ( pin -- ) (gpio-mode) 1 bits! ;
+
+: gpio-func ( pin func -- )
+    swap dup (gpio-mode) 2 bits!        ( alternate mode )
+    (gpio-func) rot bits! ;
+
 : start-clocks ( -- )
-    1 17 make-bits 1 or  RCC-BASE $14 + bits! \ GPIOA
-    1 14 make-bits 1 or  RCC-BASE $20 + bits! \ USART1
-    1 17 make-bits 1 or  RCC-BASE $1C + bits! \ USART1
+    RCC-BASE $14 +  17 1 make-bits 1 bits! \ GPIOA
+    RCC-BASE $20 +  14 1 make-bits 1 bits! \ USART1
+    RCC-BASE $1C +  17 1 make-bits 1 bits! \ USART1
 ;
 
 : main-loop ( -- )
