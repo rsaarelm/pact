@@ -5,9 +5,13 @@
 : < ( x y -- b ) - <0 ;
 : <= ( x y -- b ) - 1 - <0 ;
 : invert ( x -- ~x ) -1 xor ;
+: 2dup ( x y -- x y x y ) over over ;
+: -rot ( x y z -- z x y ) rot rot ;
+: 2drop ( x y -- ) drop drop ;
+: nip ( x y -- y ) swap drop ;
 
-: cell ( a -- cell-size*a ) 4 * ;
-: cell+ ( a -- a+cell-size ) 1 cell + ;
+: cell ( x -- cell-size*x ) 4 * ;
+: cell+ ( x -- x+cell-size ) 1 cell + ;
 
 : cr ( -- ) $a emit ;
 
