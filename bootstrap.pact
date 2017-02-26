@@ -5,6 +5,7 @@
 : < ( x y -- b ) - <0 ;
 : <= ( x y -- b ) - 1 - <0 ;
 : invert ( x -- ~x ) -1 xor ;
+: ?dup ( x -- x x | 0 ) dup if dup then ;
 : 2dup ( x y -- x y x y ) over over ;
 : -rot ( x y z -- z x y ) rot rot ;
 : 2drop ( x y -- ) drop drop ;
