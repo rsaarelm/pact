@@ -50,6 +50,7 @@ sub mangle(Str $s) {
 
     my $ret = $s;
 
+    $ret = $ret.subst(/'.'/, '_show', :g);
     $ret = $ret.subst(/'-'/, '_', :g);
     $ret = $ret.subst(/'?'/, '_p', :g);
     $ret = $ret.subst(/'!'/, '_store', :g);

@@ -2,8 +2,8 @@
 \ transpiled into symbolic assembly.
 
 : =0 ( x -- !x ) if 0 else -1 then ;
-: < ( x y -- b ) - <0 ;
-: <= ( x y -- b ) - 1 - <0 ;
+: < ( x y -- x<y ) - <0 ;
+: <= ( x y -- x<=y ) - 1 - <0 ;
 : invert ( x -- ~x ) -1 xor ;
 : ?dup ( x -- x x | 0 ) dup if dup then ;
 : 2dup ( x y -- x y x y ) over over ;
@@ -15,6 +15,24 @@
 : cell+ ( x -- x+cell-size ) 1 cell + ;
 
 : cr ( -- ) $a emit ;
+
+: digit. ( x -- ) 48 + emit ;
+
+: hex-digit. ( x -- ) dup 10 < if 48 + emit else 55 + emit then ;
+
+: (hex.) ( x -- )
+    ?dup if
+        dup 4 rshift (hex.)
+        $f and hex-digit.
+    then ;
+
+\ Print a hex word to stdout
+: hex. ( x -- )
+    dup if
+        (hex.)
+    else
+        hex-digit.
+    then ;
 
 \\ Hardware logic
 
