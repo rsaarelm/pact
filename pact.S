@@ -237,10 +237,11 @@ defcode "and", and_
 # : <0 ( x -- x<0 )
 defcode "<0", ltz
     cmp TOS, #0
+    blt 1f
     mov TOS, #0
-    bmi 1f
     NEXT            @ TOS is 0, false
 1:
+    mov TOS, #0
     sub TOS, #1     @ Make TOS -1, true
     NEXT
 
