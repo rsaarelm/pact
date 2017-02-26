@@ -34,6 +34,24 @@
         hex-digit.
     then ;
 
+\\ Bitstring ops
+
+\ Make a 0-valued bitstring word with given bit count and left shift
+\ (The actual value can be applied with just an OR op to the 0bits.)
+: make-bits ( num-bits lshift -- 0bits ) 24 lshift swap 16 lshift or ;
+
+: bits-mask ( bits -- zero-mask )
+    dup 16 rshift $ff and 1 swap lshift 1 - swap 24 rshift lshift invert ;
+
+: bits-value ( bits -- value ) dup $ff and swap 24 rshift lshift ;
+
+: unpack-bits ( bits -- value zero-mask ) dup bits-value swap bits-mask ;
+
+: apply-bits ( value bits -- value' ) unpack-bits rot and or ;
+
+\ Apply bitstring to memory address, leave bits outside the string intact.
+: bits! ( bits addr -- ) dup @ rot apply-bits swap ! ;
+
 \\ Hardware logic
 
 : GPIO-BASE $40020000 ;
