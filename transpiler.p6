@@ -50,11 +50,11 @@ sub mangle(Str $s) {
 
     my $ret = $s;
 
-    $ret = $ret.subst(/'-'/, '_');
-    $ret = $ret.subst(/'?'/, '_p');
-    $ret = $ret.subst(/'!'/, '_store');
-    $ret = $ret.subst(/'#'/, 'num');
-    $ret = $ret.subst(/'>'/, 'to');
+    $ret = $ret.subst(/'-'/, '_', :g);
+    $ret = $ret.subst(/'?'/, '_p', :g);
+    $ret = $ret.subst(/'!'/, '_store', :g);
+    $ret = $ret.subst(/'#'/, 'num', :g);
+    $ret = $ret.subst(/'>'/, 'to', :g);
 
     # '1foo' => '_1foo'
     if $ret ~~ / ^\d / {
@@ -66,7 +66,7 @@ sub mangle(Str $s) {
         $ret = $0 ~ '_aux';
     }
 
-    die("Failed to sanitize $s") unless $ret ~~ /^<alpha><alnum>*$/;
+    die("Failed to sanitize $s (got as far as [$ret])") unless $ret ~~ /^<alpha><alnum>*$/;
     return $ret;
 }
 
@@ -83,13 +83,13 @@ sub words() {
         my $in_comment = False;
 
         for $_.split(/\s+/) {
-            last if $_ ~~ m/ '\\' /;                # \: Comment to end of line
+            last if $_ ~~ m/ ^'\\' /;                # \: Comment to end of line
 
-            $in_comment = True if $_ ~~ m/ '(' /;   # (: Start inline comment
+            $in_comment = True if $_ eq '(';   # (: Start inline comment
 
             take $_ if not $in_comment;
 
-            $in_comment = False if $_ ~~ m/ ')' /;  # ): End inline comment (must be whitespace-separated)
+            $in_comment = False if $_ eq ')';  # ): End inline comment (must be whitespace-separated)
         }
     };
 }
