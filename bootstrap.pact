@@ -104,7 +104,7 @@
 : (gpio-clr) ( pin -- addr 0bits )
     dup io-base $18 + swap io# 16 + 1 make-bits ;
 : (gpio-func) ( pin -- addr 0bits )
-    dup io-base over io# 8 < if $1C else $20 then +
+    dup io-base over io# 8 < if $20 else $24 then +
     swap io# 7 and 4 * 4 make-bits ;
 
 
