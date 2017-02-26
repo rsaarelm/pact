@@ -245,6 +245,28 @@ defcode "<0", ltz
     sub TOS, #1     @ Make TOS -1, true
     NEXT
 
+# : = ( x y -- x=y )
+# XXX: Have to write out the defcode because can't pass '=' as param.
+.align 2
+name_equals:
+    .long _latest_word          @ Back pointer to previous.
+    .byte 0
+    .asciz "="
+.align 2
+_latest_word = name_equals
+equals:
+    .long 1f + 1                @ Jump to code in next word in Thumb mode
+# Code begins:
+    TOS_POP r0
+    cmp TOS, r0
+    beq 1f
+    mov TOS, #0
+    NEXT
+1:
+    mov TOS, #0
+    sub TOS, #1
+    NEXT
+
 # : + ( x y -- x+y )
 defcode "+", plus
     TOS_POP r0
