@@ -329,55 +329,6 @@ defcode "zbranch", zbranch
 # TODO Rewrite in Pact once we get the REPL going
 # This is pretty awful as is.
 defcode "init-hw", init_hw
-    ldr r0, =0x48000000 @ GPIOA
-
-    ldr r1, [r0]        @ Mode
-    mov r2, #0b11       @ P5, LED: Output
-    lsl r2, #10
-    add r2, #0b11110000
-    bic r1, r2
-
-    mov r2, #1
-    lsl r2, #10
-    add r2, #0b10100000 @ P2, P3, alternate
-    orr r1, r2
-
-    str r1, [r0]
-
-    add r0, #0x4
-    ldr r1, [r0]
-    mov r2, #0b101100    @ P2, P3, P5: pushpull
-    bic r1, r2
-    str r1, [r0]
-
-    add r0, #0x4        @ P2, P3, P5 high speed
-    ldr r1, [r0]
-    mov r2, #0x3
-    lsl r2, #6
-    add r2, #0xf
-    lsl r2, #4
-    orr r1, r2
-    str r1, [r0]
-
-    add r0, #0x4        @ P2, P3, P5 pullup-neither
-    ldr r1, [r0]
-    mov r2, #0x3
-    lsl r2, #6
-    add r2, #0xf
-    lsl r2, #4
-    bic r1, r2
-    str r1, [r0]
-
-    add r0, #0x14       @ P2, P3 alternate function
-    ldr r1, [r0]
-    mov r2, #0xff
-    lsl r2, #8
-    bic r1, r2
-    mov r2, #0x11
-    lsl r2, #8
-    orr r1, r2
-    str r1, [r0]
-
     ldr r0, =0x40004400 @ USART2
     mov r1, #0b1101     @ Usart c1 bits
     str r1, [r0]

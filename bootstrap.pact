@@ -157,4 +157,4 @@
 : main-loop ( -- )
     $3f emit key emit cr  1 + dup 1 and led  tail-recurse ;
 
-: boot ( -- ) start-clocks init-hw 1 led 1 main-loop ;
+: boot ( -- ) start-clocks init-gpio init-hw 1 led 1 main-loop ;
