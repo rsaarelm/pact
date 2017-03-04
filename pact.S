@@ -326,18 +326,6 @@ defcode "zbranch", zbranch
 
 ################################ Hardware stuff
 
-# TODO Rewrite in Pact once we get the REPL going
-# This is pretty awful as is.
-defcode "init-hw", init_hw
-    ldr r0, =0x40004400 @ USART2
-    mov r1, #0b1101     @ Usart c1 bits
-    str r1, [r0]
-    add r0, #0xC        @ Baud rate
-    ldr r1, =833        @ 8e6 (STM32 clock Hz) / 9600 bps
-    str r1, [r0]
-
-    NEXT
-
 # Emit char to serial-out
 # : emit ( char -- )
 defcode "emit" emit

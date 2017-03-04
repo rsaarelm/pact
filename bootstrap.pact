@@ -152,9 +152,17 @@
     USER-LED gpio-pushpull
 ;
 
+: USART1-BASE $40013800 ;
+: USART2-BASE $40004400 ;
+
+: init-usart ( base-addr -- )
+    %1101 over !  \ cr1 bits (SBK, RE, TE?)
+    833           \ Baud rate, 8e6 Hz / 9600 bps (TODO: baud word, need divide op)
+    over $c + ! ;
+
 : led ( on? -- ) if USER-LED gpio-set else USER-LED gpio-clr then ;
 
 : main-loop ( -- )
     $3f emit key emit cr  1 + dup 1 and led  tail-recurse ;
 
-: boot ( -- ) start-clocks init-gpio init-hw 1 led 1 main-loop ;
+: boot ( -- ) start-clocks init-gpio USART2-BASE init-usart 1 led 1 main-loop ;
