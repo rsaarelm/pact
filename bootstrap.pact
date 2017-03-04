@@ -160,6 +160,25 @@
     833           \ Baud rate, 8e6 Hz / 9600 bps (TODO: baud word, need divide op)
     over $c + ! ;
 
+: can-send? ( usart-base -- ? ) 28 + @ $80 and ;
+
+: emit-to ( char usart-base -- )
+    dup can-send? =0 if tail-recurse then
+    40 + ! ; \ store to tdr
+
+: emit ( char -- ) USART2-BASE emit-to ;
+
+: can-receive? ( usart-base -- ? ) 28 + @ $20 and ;
+
+: key-from? ( usart-base -- c T | F )
+    dup can-receive? if
+        36 + @              \ fetch from rdr
+        -1 else drop 0 then ;
+
+: key? ( -- c T | F ) USART2-BASE key-from? ;
+
+: key ( -- c ) key? =0 if tail-recurse then ;
+
 : led ( on? -- ) if USER-LED gpio-set else USER-LED gpio-clr then ;
 
 : main-loop ( -- )

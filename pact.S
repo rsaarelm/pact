@@ -324,52 +324,6 @@ defcode "zbranch", zbranch
     add NIP, #4         @ Jump over the branch address
     NEXT
 
-################################ Hardware stuff
-
-# Emit char to serial-out
-# : emit ( char -- )
-defcode "emit" emit
-    ldr r0, =0x40004400 @ USART2
-    add r0, #28         @ isr
-# Busy-wait until ISR clears send
-1:
-    ldr r1, [r0]
-    mov r2, #0x80
-    and r1, r2
-    cmp r1, #0x80
-    bne 1b
-    add r0, #12         @ tdr
-    str TOS, [r0]       @ Write TOS value and consume
-    pop {TOS}
-    NEXT
-
-# Return char and true or false depending on if key is available in serial input
-# : key? ( -- c T | F )
-defcode "key?" key_p
-    ldr r0, =0x40004400 @ USART2
-    add r0, #28         @ isr
-    ldr r1, [r0]
-    mov r2, #0x20
-    and r1, r2
-    cmp r1, #0x20
-    bne 1f              @ No key, jump away
-    add r0, #8          @ rdr
-    ldr r1, [r0]        @ Load key, push to stack
-    TOS_PUSH r1
-    push {TOS}          @ Put T flag to TOS
-    mov TOS, #0
-    sub TOS, #1
-    NEXT
-1:                      @ No key
-    mov r1, #0          @ Put F flag to TOS
-    TOS_PUSH r1
-    NEXT
-
-# Wait for key input.
-defword "key", key
-1:
-    .long key_p, zbranch, 1b - ., exit
-
 .ltorg
 
 .include "bootstrap.S"
