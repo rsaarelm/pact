@@ -158,6 +158,20 @@ defcode "!", store
     TOS_POP r0          @ Drop value
     NEXT
 
+# Get data stack address
+# : sp@ ( -- addr )
+defcode "sp\@" spfetch
+    TOS_PUSH r13
+    NEXT
+
+# Get data stack bottom address
+# : sp0 ( -- addr )
+defcode "sp0" sp0
+    ldr r0, =STACK_TOP
+    sub r0, #4
+    TOS_PUSH r0
+    NEXT
+
 ################################ Stack juggling
 
 # : drop ( x -- )

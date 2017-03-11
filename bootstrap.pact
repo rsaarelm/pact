@@ -53,6 +53,13 @@
     dup @ =0 if drop else
     dup @ emit 1 + tail-recurse then ;
 
+: (.s) ( addr -- )
+    dup sp0 = if exit then
+    dup @ .hex cr cell+ tail-recurse ;
+
+\ Dump stack to stdout
+: .s ( -- ) sp@ (.s) ;
+
 \\ Bitstring ops
 
 \ Make a 0-valued bitstring word with given bit count and left shift

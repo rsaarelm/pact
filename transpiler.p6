@@ -37,6 +37,7 @@ sub mangle(Str $s) {
         =0 eqz
         cell+ cell_inc
         and and_
+        sp@ spfetch
     >, (
         # Separate list for words that contain actual <, >.
         # Looks like they can be escaped with \ in the <..> list,
