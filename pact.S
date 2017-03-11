@@ -9,7 +9,7 @@ STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 # TODO: Name lookup, make use of the flag values
 # TODO: Add a linker file for memory regions and interrupt vector
 
-RAM_START = 0x20000000
+RAM_START = 0x40000000
 RAM_LENGTH = 8192
 
 # Compile-time variable for setting up memory regions
