@@ -29,22 +29,22 @@
 
 : cr ( -- ) $a emit ;
 
-: digit. ( x -- ) 48 + emit ;
+: .digit ( x -- ) 48 + emit ;
 
-: hex-digit. ( x -- ) dup 10 < if 48 + emit else 55 + emit then ;
+: .hex-digit ( x -- ) dup 10 < if 48 + emit else 55 + emit then ;
 
-: (hex.) ( x -- )
+: (.hex) ( x -- )
     ?dup if
-        dup 4 rshift (hex.)
-        $f and hex-digit.
+        dup 4 rshift (.hex)
+        $f and .hex-digit
     then ;
 
 \ Print a hex word to stdout
-: hex. ( x -- )
+: .hex ( x -- )
     dup if
-        (hex.)
+        (.hex)
     else
-        hex-digit.
+        .hex-digit
     then ;
 
 \\ Bitstring ops
