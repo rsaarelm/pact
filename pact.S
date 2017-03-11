@@ -158,6 +158,20 @@ defcode "!", store
     TOS_POP r0          @ Drop value
     NEXT
 
+# Read byte at address
+# : c@ ( addr -- byte )
+defcode "c\@", cfetch
+    ldrb TOS, [TOS]
+    NEXT
+
+# Write byte to address
+# : c! ( byte addr -- )
+defcode "c!", cstore
+    TOS_POP r0          @ The address
+    strb TOS, [r0]      @ Value from TOS
+    TOS_POP r0          @ Drop value
+    NEXT
+
 # Get data stack address
 # : sp@ ( -- addr )
 defcode "sp\@" spfetch

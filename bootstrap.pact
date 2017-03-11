@@ -22,13 +22,6 @@
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
 
-: c! ( byte addr -- )
-    \ Should be done in ASM, but let's do the stupid high-level one now.
-    dup 3 and 8 * 8 make-bits \ Make a bitmask for applying byte
-    rot bits! ;
-
-: c@ ( addr -- byte ) dup 3 and 8 * swap @ swap rshift $ff and ;
-
 : cr ( -- ) $a emit ;
 
 : .digit ( x -- ) 48 + emit ;
