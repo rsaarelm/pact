@@ -1,6 +1,13 @@
 \ Bootstrap Pact code for the initial interpreter. Will be
 \ transpiled into symbolic assembly.
 
+: ram-start ( -- addr ) $40000000 ;
+
+\ Hardcoded RAM map (relative to ram-start):
+\ 0x0000    return stack
+\ 0x0100    word buffer
+\ 0x0180
+
 : =0 ( x -- !x ) if 0 else -1 then ;
 : < ( x y -- x<y ) - <0 ;
 : <= ( x y -- x<=y ) - 1 - <0 ;

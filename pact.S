@@ -12,21 +12,9 @@ STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 RAM_START = 0x40000000
 RAM_LENGTH = 8192
 
-# Compile-time variable for setting up memory regions
-_region_pos = RAM_START + RAM_LENGTH
+RETURN_STACK_END = RAM_START + 256
 
-# for memory region REGION in RAM, define symbols REGION_START, REGION_LENGTH and REGION_END
-.macro ram_region name, size
-    \name\()_LENGTH = \size
-    \name\()_END = _region_pos
-    _region_pos = _region_pos - \size
-    \name\()_START = _region_pos
-.endm
-
-ram_region RETURN_STACK, 256
-ram_region WORD_BUFFER, 32
-
-STACK_TOP = _region_pos
+STACK_TOP = RAM_START + RAM_LENGTH
 
 # Vector table
 .long   STACK_TOP
