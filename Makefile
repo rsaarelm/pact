@@ -23,6 +23,9 @@ debug: deploy
 bootstrap.S: bootstrap.pact transpiler.p6
 	./transpiler.p6 < $< > $@ || ( rm -f $@; false )
 
+run: pact.bin thumbulator
+	./thumbulator pact.bin
+
 thumbulator: thumbulator.c
 	gcc -o thumbulator -O2 thumbulator.c
 
