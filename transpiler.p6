@@ -44,6 +44,7 @@ sub mangle(Str $s) {
         '<', 'lt',
         '<0', 'ltz',
         '<=', 'lte',
+        '>=', 'gte',
     );
 
     return %predef{$s} if %predef{$s};

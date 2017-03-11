@@ -11,6 +11,7 @@
 : =0 ( x -- !x ) if 0 else -1 then ;
 : < ( x y -- x<y ) - <0 ;
 : <= ( x y -- x<=y ) - 1 - <0 ;
+: >= ( x y -- x>=y ) swap <= ;
 : invert ( x -- ~x ) -1 xor ;
 : ?dup ( x -- x x | 0 ) dup if dup then ;
 : 2dup ( x y -- x y x y ) over over ;
@@ -20,6 +21,11 @@
 
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
+
+: c! ( byte addr -- )
+    \ Should be done in ASM, but let's do the stupid high-level one now.
+    dup 3 and 8 * 8 make-bits \ Make a bitmask for applying byte
+    rot bits! ;
 
 : cr ( -- ) $a emit ;
 
@@ -65,6 +71,28 @@
 : key ( -- c ) $E0000000 @ ;
 
 : halt ( -- ) 1 $E000E020 ! ;
+
+\\ Input parsing
+
+: word-buffer ( -- ptr ) ram-start $100 + ;
+: word-buffer-len ( -- n ) $80 ;
+
+: word-buffer-end? ( ptr -- ? ) word-buffer word-buffer-len + 1 - >= ;
+
+: whitespace? ( key -- ? )
+    dup 32 = if drop -1 exit then
+    dup 10 = if drop -1 exit then
+    drop 0 ;
+
+: (read) ( ptr -- )
+    dup word-buffer-end? if 0 swap c! exit then
+    key dup whitespace? if 0 swap c! exit then
+    over c! 1 + tail-recurse ;
+
+\ Read a word into input buffer, stops at first whitespace char
+: read ( -- str )
+    word-buffer (read)
+    word-buffer ;
 
 : main-loop ( -- )
     key emit cr 64 emit 65 emit cr halt ;
