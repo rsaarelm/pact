@@ -197,6 +197,13 @@ fflush(stdout);
                     systick_calibrate=data&0x00FFFFFF;
                     break;
                 }
+                // Exit VM, for using emulator to run terminating progrms on
+                // host OS.
+                case 0xE000E020:
+                {
+                    if (data) exit(0);
+                    break;
+                }
             }
             return;
         case 0xD0000000: //debug
