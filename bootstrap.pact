@@ -60,7 +60,7 @@
     dup @ .hex cr cell+ tail-recurse ;
 
 \ Dump stack to stdout
-: .s ( -- ) sp@ (.s) ;
+: .s ( -- ) sp@ (.s) drop ;
 
 \\ Bitstring ops
 
