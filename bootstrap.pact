@@ -47,6 +47,11 @@
         .hex-digit
     then ;
 
+\ Print a string to stdout
+: .str ( addr -- )
+    dup @ =0 if drop else
+    dup @ emit 1 + tail-recurse then ;
+
 \\ Bitstring ops
 
 \ Make a 0-valued bitstring word with given bit count and left shift
@@ -95,6 +100,6 @@
     word-buffer ;
 
 : main-loop ( -- )
-    key emit cr 64 emit 65 emit cr halt ;
+    read drop cr 64 emit 65 emit cr halt ;
 
 : boot ( -- ) main-loop ;
