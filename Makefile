@@ -23,8 +23,11 @@ debug: deploy
 bootstrap.S: bootstrap.pact transpiler.p6
 	./transpiler.p6 < $< > $@ || ( rm -f $@; false )
 
+thumbulator: thumbulator.c
+	gcc -o thumbulator -O2 thumbulator.c
+
 test-transpiler: transpiler.p6
 	prove -fe ./$< --test
 
 clean:
-	rm -f *.bin *.elf *.o bootstrap.S
+	rm -f *.bin *.elf *.o bootstrap.S thumbulator
