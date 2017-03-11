@@ -245,6 +245,7 @@ _latest_word = name_equals
 equals:
     .long 1f + 1                @ Jump to code in next word in Thumb mode
 # Code begins:
+1:
     TOS_POP r0
     cmp TOS, r0
     beq 1f
