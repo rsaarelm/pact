@@ -41,6 +41,7 @@
 
 \ Print a hex word to stdout
 : .hex ( x -- )
+    36 emit
     dup if
         (.hex)
     else
