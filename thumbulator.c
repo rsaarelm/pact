@@ -12,7 +12,7 @@ unsigned int read_register ( unsigned int );
 #define DBUGRAMW    0
 #define DBUGREG     0
 #define DBUG        0
-#define DISS        1
+#define DISS        0
 
 #define ROMADDMASK 0xFFFFF
 #define RAMADDMASK 0xFFFFF
