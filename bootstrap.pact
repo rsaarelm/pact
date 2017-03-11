@@ -27,6 +27,8 @@
     dup 3 and 8 * 8 make-bits \ Make a bitmask for applying byte
     rot bits! ;
 
+: c@ ( addr -- byte ) dup 3 and 8 * swap @ swap rshift $ff and ;
+
 : cr ( -- ) $a emit ;
 
 : .digit ( x -- ) 48 + emit ;
@@ -50,8 +52,8 @@
 
 \ Print a string to stdout
 : .str ( addr -- )
-    dup @ =0 if drop else
-    dup @ emit 1 + tail-recurse then ;
+    dup c@ =0 if drop else
+    dup c@ emit 1 + tail-recurse then ;
 
 : (.s) ( addr -- )
     dup sp0 = if exit then
@@ -99,7 +101,7 @@
 
 : (read) ( ptr -- )
     dup word-buffer-end? if 0 swap c! exit then
-    key dup whitespace? if 0 swap c! exit then
+    key dup whitespace? if drop 0 swap c! exit then
     over c! 1 + tail-recurse ;
 
 \ Read a word into input buffer, stops at first whitespace char
@@ -108,6 +110,6 @@
     word-buffer ;
 
 : main-loop ( -- )
-    read drop cr 64 emit 65 emit cr halt ;
+    read .str cr 64 emit 65 emit cr halt ;
 
 : boot ( -- ) main-loop ;

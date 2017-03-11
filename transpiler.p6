@@ -25,8 +25,6 @@ sub mangle(Str $s) {
     die("Mangling immediate word $s") if is_immediate($s);
 
     my %predef = flat <
-        @ fetch
-        ! store
         + plus
         - minus
         * times
@@ -37,7 +35,6 @@ sub mangle(Str $s) {
         =0 eqz
         cell+ cell_inc
         and and_
-        sp@ spfetch
     >, (
         # Separate list for words that contain actual <, >.
         # Looks like they can be escaped with \ in the <..> list,
@@ -55,7 +52,8 @@ sub mangle(Str $s) {
     $ret = $ret.subst(/'.'/, '_show', :g);
     $ret = $ret.subst(/'-'/, '_', :g);
     $ret = $ret.subst(/'?'/, '_p', :g);
-    $ret = $ret.subst(/'!'/, '_store', :g);
+    $ret = $ret.subst(/'!'/, 'store', :g);
+    $ret = $ret.subst(/'@'/, 'fetch', :g);
     $ret = $ret.subst(/'#'/, 'num', :g);
     $ret = $ret.subst(/'>'/, 'to', :g);
 
