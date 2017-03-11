@@ -275,6 +275,9 @@ if(DBUGRAMW) fprintf(stderr,"0x%08X\n",data);
         {
             switch(addr)
             {
+                case 0xE0000000:
+                    data = fgetc(stdin);
+                    return(data);
                 case 0xE000E010:
                 {
                     data = systick_ctrl;
