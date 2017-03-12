@@ -59,8 +59,8 @@
 \ Return whether two strings are equal
 : streq ( adr1 adr2 -- ? )
     2dup c@ swap c@
-    2dup <> if drop drop drop drop 0 exit then
-    =0 if drop drop -1 exit then
+    2dup <> if 2drop 2drop 0 exit then
+    drop =0 if 2drop -1 exit then
     1+ swap 1+ tail-recurse ;
 
 \ Move to byte address one past the terminating zero for string.
