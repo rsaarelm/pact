@@ -111,12 +111,12 @@
 \ Dump vocabulary
 : words ( -- ) last @ (words) cr ;
 
-: (find-word) ( str vocab-ptr -- vocab-ptr T | F )
-    dup =0 if drop drop 0 exit then
+: (find-word) ( str vocab-ptr -- vocab-ptr T | str F )
+    dup =0 if drop 0 exit then
     over over word-name streq if nip -1 exit then
     @ tail-recurse ;
 
-: find-word ( str -- vocab-ptr T | F ) last (find-word) ;
+: find-word ( str -- vocab-ptr T | str F ) last (find-word) ;
 
 : word-buffer ( -- ptr ) ram-start $100 + ;
 : word-buffer-len ( -- n ) $80 ;
@@ -138,10 +138,26 @@
     word-buffer (read)
     word-buffer ;
 
+: >digit ( c -- F | n T )
+    dup dup 48 >= swap 57 <= and if 48 - -1 else drop 0 then ;
+
+\ If str begins with '-', increment str by 1 byte and push -1 to stack,
+\ otherwise leave str intact and push 1 to stack.
+: (sign) ( str -- 1/-1 str' ) dup c@ 45 = if 1+ -1 else 1 then swap ;
+
+: (>number) ( str n -- F | n T )
+    over c@ =0 if nip -1 exit then
+    over c@ >digit if swap 10 * + swap 1+ swap tail-recurse then
+    2drop 0 ;
+
+: >number ( str -- F | n T )
+    (sign) 0 (>number) if * -1 else 2drop 0 then ;
+
 : interpret ( -- )
     read
-    find-word if execute else 63 emit cr then
-\ TODO parse number
-    ;
+    find-word if word-code execute exit then
+    >number if ( no-op, leave on stack ) exit then
+    \ Error message otherwise
+    63 emit cr ;
 
-: boot ( -- ) interpret .s halt ;
+: boot ( -- ) interpret halt ;

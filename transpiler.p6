@@ -41,6 +41,7 @@ sub mangle(Str $s) {
         # but the Vim syntax mode won't understand that and messes up the file.
         '<>', 'neq',
         '<', 'lt',
+        '>', 'gt',
         '<0', 'ltz',
         '<=', 'lte',
         '>=', 'gte',
