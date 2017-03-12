@@ -56,6 +56,17 @@
     dup c@ =0 if drop else
     dup c@ emit 1 + tail-recurse then ;
 
+\ Return whether two strings are equal
+: streq ( adr1 adr2 -- ? )
+    2dup c@ swap c@
+    2dup <> if drop drop drop drop 0 exit then
+    =0 if drop drop -1 exit then
+    1+ swap 1+ tail-recurse ;
+
+\ Move to byte address one past the terminating zero for string.
+: string-end ( adr -- end-adr )
+    dup c@ =0 if 1+ else 1+ tail-recurse then ;
+
 : (.s) ( addr -- )
     dup sp0 = if exit then
     dup @ .hex cr cell+ tail-recurse ;
@@ -90,11 +101,22 @@
 
 \\ Input parsing
 
+: word-name ( vocab-ptr -- name-ptr ) cell+ 1 + ;
+
+: word-code ( vocab-ptr -- code-addr ) word-name string-end aligned ;
+
 : (words) ( vocab-ptr -- )
-    ?dup if dup cell+ 1 + .str $20 emit @ tail-recurse then ;
+    ?dup if dup word-name .str $20 emit @ tail-recurse then ;
 
 \ Dump vocabulary
 : words ( -- ) last @ (words) cr ;
+
+: (find-word) ( str vocab-ptr -- vocab-ptr T | F )
+    dup =0 if drop drop 0 exit then
+    over over word-name streq if nip -1 exit then
+    @ tail-recurse ;
+
+: find-word ( str -- vocab-ptr T | F ) last (find-word) ;
 
 : word-buffer ( -- ptr ) ram-start $100 + ;
 : word-buffer-len ( -- n ) $80 ;
@@ -116,7 +138,10 @@
     word-buffer (read)
     word-buffer ;
 
-: main-loop ( -- )
-    read .str cr 64 emit 65 emit cr halt ;
+: interpret ( -- )
+    read
+    find-word if execute else 63 emit cr then
+\ TODO parse number
+    ;
 
-: boot ( -- ) main-loop ;
+: boot ( -- ) interpret .s halt ;

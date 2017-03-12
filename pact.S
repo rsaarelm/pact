@@ -195,6 +195,13 @@ defcode "sp0" sp0
     TOS_PUSH r0
     NEXT
 
+# Execute word from code address in stack
+# : execute ( code-addr -- )
+defcode "execute" execute
+    TOS_POP r0
+    ldr r1, [r0]
+    bx r1               @ (never returns, no need for NEXT)
+
 ################################ Stack juggling
 
 # : drop ( x -- )
