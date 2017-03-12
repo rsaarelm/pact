@@ -39,6 +39,7 @@ sub mangle(Str $s) {
         # Separate list for words that contain actual <, >.
         # Looks like they can be escaped with \ in the <..> list,
         # but the Vim syntax mode won't understand that and messes up the file.
+        '<>', 'neq',
         '<', 'lt',
         '<0', 'ltz',
         '<=', 'lte',

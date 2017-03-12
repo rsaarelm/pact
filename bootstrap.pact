@@ -10,6 +10,7 @@
 \ 0x0184
 
 : =0 ( x -- !x ) if 0 else -1 then ;
+: <> ( x y -- x<>y ) = =0 ;
 : < ( x y -- x<y ) - <0 ;
 : <= ( x y -- x<=y ) - 1 - <0 ;
 : >= ( x y -- x>=y ) swap <= ;
@@ -20,8 +21,14 @@
 : 2drop ( x y -- ) drop drop ;
 : nip ( x y -- y ) swap drop ;
 
+: 1+ ( x -- x+1 ) 1 + ;
+
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
+
+\ Align the address to the next machine word boundary
+: aligned ( addr -- word-aligned-addr )
+    dup 3 invert and swap 3 and if cell+ then ;
 
 : cr ( -- ) $a emit ;
 
