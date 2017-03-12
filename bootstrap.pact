@@ -6,7 +6,8 @@
 \ Hardcoded RAM map (relative to ram-start):
 \ 0x0000    return stack
 \ 0x0100    word buffer
-\ 0x0180
+\ 0x0180    LAST
+\ 0x0184
 
 : =0 ( x -- !x ) if 0 else -1 then ;
 : < ( x y -- x<y ) - <0 ;

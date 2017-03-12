@@ -12,9 +12,11 @@ STACK_UNDERFLOW = 0x5EEB100D    @ Magic number at the bottom of stack
 RAM_START = 0x40000000
 RAM_LENGTH = 8192
 
-RETURN_STACK_END = RAM_START + 256
+RETURN_STACK_END = RAM_START + 0x100
 
 STACK_TOP = RAM_START + RAM_LENGTH
+
+LAST_VAR_ADDR = RAM_START + 0x180
 
 # Vector table
 .long   STACK_TOP
@@ -119,10 +121,17 @@ _latest_word = name_\sym
 
 .global _start
 _start:
+    # Global variable init
+    ldr r0, =name_last
+    ldr r1, =LAST_VAR_ADDR
+    str r0, [r1]
+
+    # Inner interpreter init
     ldr RSP, =RETURN_STACK_END       @ Initialize RSP
     ldr TOS, =STACK_UNDERFLOW
     ldr r0, =boot                    @ Load initial word
     ldr NIP, =boot + 4
+
     b docol
 
 .ltorg
@@ -344,3 +353,11 @@ defcode "zbranch", zbranch
 .ltorg
 
 .include "bootstrap.S"
+
+.ltorg
+
+# Defined here so it's guaranteed to be the actual last kernel word
+defcode "last", last
+    ldr r0, =LAST_VAR_ADDR
+    TOS_PUSH r0
+    NEXT
