@@ -113,10 +113,10 @@
 
 : (find-word) ( str vocab-ptr -- vocab-ptr T | str F )
     dup =0 if drop 0 exit then
-    over over word-name streq if nip -1 exit then
+    2dup word-name streq if nip -1 exit then
     @ tail-recurse ;
 
-: find-word ( str -- vocab-ptr T | str F ) last (find-word) ;
+: find-word ( str -- vocab-ptr T | str F ) last @ (find-word) ;
 
 : word-buffer ( -- ptr ) ram-start $100 + ;
 : word-buffer-len ( -- n ) $80 ;
