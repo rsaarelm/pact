@@ -83,6 +83,12 @@
 
 \\ Input parsing
 
+: (words) ( vocab-ptr -- )
+    ?dup if dup cell+ 1 + .str $20 emit @ tail-recurse then ;
+
+\ Dump vocabulary
+: words ( -- ) last @ (words) cr ;
+
 : word-buffer ( -- ptr ) ram-start $100 + ;
 : word-buffer-len ( -- n ) $80 ;
 
