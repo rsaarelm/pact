@@ -54,7 +54,7 @@
 \ Print a string to stdout
 : .str ( addr -- )
     dup c@ =0 if drop else
-    dup c@ emit 1 + tail-recurse then ;
+    dup c@ emit 1+ tail-recurse then ;
 
 \ Return whether two strings are equal
 : streq ( adr1 adr2 -- ? )
@@ -101,7 +101,7 @@
 
 \\ Input parsing
 
-: word-name ( vocab-ptr -- name-ptr ) cell+ 1 + ;
+: word-name ( vocab-ptr -- name-ptr ) cell+ 1+ ;
 
 : word-code ( vocab-ptr -- code-addr ) word-name string-end aligned ;
 
@@ -131,7 +131,7 @@
 : (read) ( ptr -- )
     dup word-buffer-end? if 0 swap c! exit then
     key dup whitespace? if drop 0 swap c! exit then
-    over c! 1 + tail-recurse ;
+    over c! 1+ tail-recurse ;
 
 \ Read a word into input buffer, stops at first whitespace char
 : read ( -- str )
