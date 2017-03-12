@@ -160,4 +160,4 @@
     \ Error message otherwise
     63 emit cr ;
 
-: boot ( -- ) interpret halt ;
+: boot ( -- ) interpret tail-recurse ;
