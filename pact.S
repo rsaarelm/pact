@@ -189,13 +189,13 @@ defcode "c!", cstore
 
 # Get data stack address
 # : sp@ ( -- addr )
-defcode "sp\@" spfetch
+defcode "sp\@", spfetch
     TOS_PUSH r13
     NEXT
 
 # Get data stack bottom address
 # : sp0 ( -- addr )
-defcode "sp0" sp0
+defcode "sp0", sp0
     ldr r0, =STACK_TOP
     sub r0, #4
     TOS_PUSH r0
@@ -203,10 +203,24 @@ defcode "sp0" sp0
 
 # Execute word from code address in stack
 # : execute ( code-addr -- )
-defcode "execute" execute
+defcode "execute", execute
     TOS_POP r0
     ldr r1, [r0]
     bx r1               @ (never returns, no need for NEXT)
+
+# Store word in return stack
+# : >r ( x -- )
+defcode ">r", tor
+    TOS_POP r0
+    PUSH_RSP r0
+    NEXT
+
+# Retrieve word from return stack
+# : >r ( -- x )
+defcode ">r", fromr
+    POP_RSP r0
+    TOS_PUSH r0
+    NEXT
 
 ################################ Stack juggling
 
