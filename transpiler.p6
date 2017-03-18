@@ -24,6 +24,7 @@ sub is_immediate(Str $word) {
 sub mangle(Str $s) {
     die("Mangling immediate word $s") if is_immediate($s);
 
+    # Complete words with predefined names
     my %predef = flat <
         + plus
         - minus
@@ -51,7 +52,9 @@ sub mangle(Str $s) {
 
     my $ret = $s;
 
+    # Substitution for parts of word names
     $ret = $ret.subst(/'.'/, '_show', :g);
+    $ret = $ret.subst(/','/, 'comma', :g);
     $ret = $ret.subst(/'-'/, '_', :g);
     $ret = $ret.subst(/'?'/, '_p', :g);
     $ret = $ret.subst(/'!'/, 'store', :g);

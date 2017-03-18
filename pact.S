@@ -17,6 +17,7 @@ RETURN_STACK_END = RAM_START + 0x100
 STACK_TOP = RAM_START + RAM_LENGTH
 
 LAST_VAR_ADDR = RAM_START + 0x180
+HERE_VAR_ADDR = RAM_START + 0x184
 
 # Vector table
 .long   STACK_TOP
@@ -121,9 +122,13 @@ _latest_word = name_\sym
 
 .global _start
 _start:
-    # Global variable init
+    # Global variables init
     ldr r0, =name_last
     ldr r1, =LAST_VAR_ADDR
+    str r0, [r1]
+
+    ldr r0, =0x40000200
+    ldr r1, =HERE_VAR_ADDR
     str r0, [r1]
 
     # Inner interpreter init
@@ -362,6 +367,11 @@ defcode "zbranch", zbranch
 .include "bootstrap.S"
 
 .ltorg
+
+defcode "here", here
+    ldr r0, =HERE_VAR_ADDR
+    TOS_PUSH r0
+    NEXT
 
 # Defined here so it's guaranteed to be the actual last kernel word
 defcode "last", last

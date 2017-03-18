@@ -7,7 +7,10 @@
 \ 0x0000    return stack
 \ 0x0100    word buffer
 \ 0x0180    LAST
-\ 0x0184
+\ 0x0184    HERE (the variable, not the value)
+\ 0x0188
+\ ( reserved for global vars )
+\ 0x0200    here (the value, write memory starts here)
 
 : =0 ( x -- !x ) if 0 else -1 then ;
 : <> ( x y -- x<>y ) = =0 ;
@@ -41,6 +44,16 @@
         dup 4 rshift (.hex)
         $f and .hex-digit
     then ;
+
+\ Memory operations
+
+\ Write word at HERE and increment HERE by word length
+: , ( word -- ) here @ ! here @ cell+ here ! ;
+
+\ Align HERE to word boundary
+: align ( -- ) here @ aligned here ! ;
+
+: c, ( char -- ) here @ c! here @ 1+ here ! ;
 
 \ Print a hex word to stdout
 : .hex ( x -- )
