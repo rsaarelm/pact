@@ -173,4 +173,7 @@
     \ Error message otherwise
     63 emit cr ;
 
+\ Read word from input and find its address in directory
+: ' ( -- addr ) read find-word if else nip then ;
+
 : boot ( -- ) interpret tail-recurse ;
