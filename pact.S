@@ -143,6 +143,7 @@ _start:
 
 # Inner interpreter for threaded Pact bytecode
 # NEXT jumps here, assume r0 will contain the current code word address
+defcode "docol", docol_
 docol:
     PUSH_RSP NIP                     @ Store next instruction on return stack
     add r0, #4
