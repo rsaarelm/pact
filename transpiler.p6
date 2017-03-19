@@ -47,6 +47,10 @@ sub mangle(Str $s) {
         '<=', 'lte',
         '>=', 'gte',
         "'", 'quote',
+        "'\\n'", '_gap',
+        "'\$'", '_buc',
+        "'-'", '_hep',
+        "'?'", '_wut',
     );
 
     return %predef{$s} if %predef{$s};
@@ -56,6 +60,7 @@ sub mangle(Str $s) {
     # Substitution for parts of word names
     $ret = $ret.subst(/'.'/, '_show', :g);
     $ret = $ret.subst(/','/, 'comma', :g);
+    $ret = $ret.subst(/'\''/, 'quote', :g);
     $ret = $ret.subst(/'-'/, '_', :g);
     $ret = $ret.subst(/'?'/, '_p', :g);
     $ret = $ret.subst(/'!'/, 'store', :g);

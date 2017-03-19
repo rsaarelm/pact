@@ -34,11 +34,21 @@
 : aligned ( addr -- word-aligned-addr )
     dup 3 invert and swap 3 and if cell+ then ;
 
-: cr ( -- ) $a emit ;
+\ Some ASCII constants
 
-: .digit ( x -- ) 48 + emit ;
+: '\n' 10 ;
+: '$' 36 ;
+: '-' 45 ;
+: '0' 48 ;
+: '9' 57 ;
+: '?' 63 ;
+: 'A' 65 ;
 
-: .hex-digit ( x -- ) dup 10 < if 48 + emit else 55 + emit then ;
+: cr ( -- ) '\n' emit ;
+
+: .digit ( x -- ) '0' + emit ;
+
+: .hex-digit ( x -- ) dup 10 < if '0' + emit else 10 - 'A' + emit then ;
 
 : (.hex) ( x -- )
     ?dup if
@@ -153,11 +163,11 @@
     word-buffer ;
 
 : >digit ( c -- F | n T )
-    dup dup 48 >= swap 57 <= and if 48 - -1 else drop 0 then ;
+    dup dup '0' >= swap '9' <= and if '0' - -1 else drop 0 then ;
 
 \ If str begins with '-', increment str by 1 byte and push -1 to stack,
 \ otherwise leave str intact and push 1 to stack.
-: (sign) ( str -- 1/-1 str' ) dup c@ 45 = if 1+ -1 else 1 then swap ;
+: (sign) ( str -- 1/-1 str' ) dup c@ '-' = if 1+ -1 else 1 then swap ;
 
 : (>number) ( str n -- F | n T )
     over c@ =0 if nip -1 exit then
@@ -172,7 +182,7 @@
     find-word if word-code execute exit then
     >number if ( no-op, leave on stack ) exit then
     \ Error message otherwise
-    63 emit cr ;
+    '?' emit cr ;
 
 \ Read word from input and find its address in directory
 : ' ( -- addr ) read find-word if else nip then ;
