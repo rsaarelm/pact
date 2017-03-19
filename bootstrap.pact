@@ -43,6 +43,7 @@
 : '9' 57 ;
 : '?' 63 ;
 : 'A' 65 ;
+: 'F' 70 ;
 
 : cr ( -- ) '\n' emit ;
 
@@ -162,12 +163,29 @@
     word-buffer (read)
     word-buffer ;
 
-: >digit ( c -- F | n T )
-    dup dup '0' >= swap '9' <= and if '0' - -1 else drop 0 then ;
-
 \ If str begins with '-', increment str by 1 byte and push -1 to stack,
 \ otherwise leave str intact and push 1 to stack.
 : (sign) ( str -- 1/-1 str' ) dup c@ '-' = if 1+ -1 else 1 then swap ;
+
+: digit? ( c -- ? ) dup '0' >= swap '9' <= and ;
+
+: hex-digit? ( c -- ? ) dup digit? swap dup 'A' >= swap 'F' <= and or ;
+
+: >hex-digit ( c -- F | n T )
+    dup hex-digit? if
+    dup 'A' >= if 7 - then              \ Bring on top of the ASCII decimals
+    '0' - -1 else drop 0 then ;
+
+: (>hex-number) ( str n -- F | n T )
+    over c@ =0 if nip -1 exit then
+    over c@ >hex-digit if swap $10 * + swap 1+ swap tail-recurse then
+    2drop 0 ;
+
+: >hex-number ( str -- F | n T )
+    (sign) 0 (>hex-number) if * -1 else 2drop 0 then ;
+
+: >digit ( c -- F | n T )
+    dup digit? if '0' - -1 else drop 0 then ;
 
 : (>number) ( str n -- F | n T )
     over c@ =0 if nip -1 exit then
@@ -175,6 +193,7 @@
     2drop 0 ;
 
 : >number ( str -- F | n T )
+    dup c@ '$' = if 1+ >hex-number exit then
     (sign) 0 (>number) if * -1 else 2drop 0 then ;
 
 : interpret ( -- )
