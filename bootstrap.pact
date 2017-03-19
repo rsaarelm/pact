@@ -26,6 +26,7 @@
 : nip ( x y -- y ) swap drop ;
 
 : 1+ ( x -- x+1 ) 1 + ;
+: 1- ( x -- x+1 ) 1 - ;
 
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
@@ -75,12 +76,23 @@
     else over c! 1+ then                    \ TODO: Throw error when hit buffer end
     tail-recurse ;
 
-
 \ Read double quote delimited string from input
 : " ( -- str ) word-buffer (") word-buffer ;
 
-\ \ Place string in directory
-\ : ," ( -- )
+: ("len) ( n str -- n )
+    dup c@ =0 if drop exit then
+    1+ swap 1+ swap tail-recurse ;
+
+\ String length
+: "len ( str -- n ) 0 swap ("len) ;
+
+: "copy ( src dest -- )
+    over c@ over c!
+    over c@ =0 if 2drop exit then
+    1+ swap 1+ swap tail-recurse ;
+
+\ Place string in directory. Leaves HERE aligned
+: ," ( -- ) " dup "len swap here @ "copy here @ + here ! align ;
 
 \ Print a hex word to stdout
 : .hex ( x -- )
@@ -151,6 +163,16 @@
 
 \ Dump vocabulary
 : words ( -- ) last @ (words) cr ;
+
+: (dump) ( addr len n -- )
+    dup 30 = if drop 0 cr then
+    -rot
+    dup =0 if drop drop drop exit then
+    over c@ dup $10 < if 0 .hex then .hex
+    1- swap 1+ swap rot 1+ tail-recurse ;
+
+\ Dump memory
+: dump ( addr len -- ) 0 (dump) cr ;
 
 : (find-word) ( str vocab-ptr -- vocab-ptr T | str F )
     dup =0 if drop 0 exit then
