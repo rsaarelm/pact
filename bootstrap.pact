@@ -84,12 +84,13 @@
 
 \ Print a hex word to stdout
 : .hex ( x -- )
-    36 emit
     dup if
         (.hex)
     else
         .hex-digit
     then ;
+
+: . ( x -- ) '$' emit .hex ;                 \ TODO: Support decimal
 
 \ Print a string to stdout
 : .str ( addr -- )
