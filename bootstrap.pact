@@ -37,6 +37,7 @@
 \ Some ASCII constants
 
 : '\n' 10 ;
+: '"' 34 ;
 : '$' 36 ;
 : '-' 45 ;
 : '0' 48 ;
@@ -44,6 +45,7 @@
 : '?' 63 ;
 : 'A' 65 ;
 : 'F' 70 ;
+: '\' 92 ;
 
 : cr ( -- ) '\n' emit ;
 
@@ -65,7 +67,20 @@
 \ Align HERE to word boundary
 : align ( -- ) here @ aligned here ! ;
 
-: c, ( char -- ) here @ c! here @ 1+ here ! ;
+: (") ( ptr -- )
+    key
+    dup '"' = if drop 0 swap c! exit then   \ Closing quote
+    dup '\' = if drop key then              \ Escape the next char for " in string
+    over word-buffer-end? if nip 0 swap c!  \ Discard further input at buffer end
+    else over c! 1+ then                    \ TODO: Throw error when hit buffer end
+    tail-recurse ;
+
+
+\ Read double quote delimited string from input
+: " ( -- str ) word-buffer (") word-buffer ;
+
+\ \ Place string in directory
+\ : ," ( -- )
 
 \ Print a hex word to stdout
 : .hex ( x -- )

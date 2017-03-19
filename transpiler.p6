@@ -3,12 +3,13 @@
 # Not using the macro in the main .S file because GAS keeps getting weird about
 # stuff in the string macro argument.
 sub defword(Str $word, Str $sym) {
+    my $word_esc = $word.subst(/'"'/, '\\"', :g);
 say qq:to/END/;
 .align 2
 name_$sym:
     .long _latest_word
     .byte 0
-    .asciz "$word"
+    .asciz "$word_esc"
 _latest_word = name_$sym
 .align 2
 $sym:
@@ -51,6 +52,8 @@ sub mangle(Str $s) {
         "'\$'", '_buc',
         "'-'", '_hep',
         "'?'", '_wut',
+        "'\"'", '_doq',
+        "'\\'", '_bas',
     );
 
     return %predef{$s} if %predef{$s};
@@ -61,6 +64,7 @@ sub mangle(Str $s) {
     $ret = $ret.subst(/'.'/, '_show', :g);
     $ret = $ret.subst(/','/, 'comma', :g);
     $ret = $ret.subst(/'\''/, 'quote', :g);
+    $ret = $ret.subst(/'"'/, 'dbquote', :g);
     $ret = $ret.subst(/'-'/, '_', :g);
     $ret = $ret.subst(/'?'/, '_p', :g);
     $ret = $ret.subst(/'!'/, 'store', :g);
