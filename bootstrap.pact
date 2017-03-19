@@ -6,9 +6,10 @@
 \ Hardcoded RAM map (relative to ram-start):
 \ 0x0000    return stack
 \ 0x0100    word buffer
-\ 0x0180    LAST
+\ 0x0180    LAST the dictionary address of the last regular word
 \ 0x0184    HERE (the variable, not the value)
-\ 0x0188
+\ 0x0188    LAST-IMMEDIATE the dictionary address of the last immediate word
+\ 0x018C
 \ ( reserved for global vars )
 \ 0x0200    here (the value, write memory starts here)
 
@@ -175,5 +176,6 @@
 
 \ Read word from input and find its address in directory
 : ' ( -- addr ) read find-word if else nip then ;
+\ XXX: This should be immediate word but we don't support that yet...
 
 : boot ( -- ) interpret tail-recurse ;

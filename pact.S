@@ -18,6 +18,7 @@ STACK_TOP = RAM_START + RAM_LENGTH
 
 LAST_VAR_ADDR = RAM_START + 0x180
 HERE_VAR_ADDR = RAM_START + 0x184
+LAST_IMMEDIATE_VAR_ADDR = RAM_START + 0x188
 
 # Vector table
 .long   STACK_TOP
@@ -129,6 +130,10 @@ _start:
 
     ldr r0, =0x40000200
     ldr r1, =HERE_VAR_ADDR
+    str r0, [r1]
+
+    ldr r0, =0x0
+    ldr r1, =LAST_IMMEDIATE_VAR_ADDR
     str r0, [r1]
 
     # Inner interpreter init
@@ -385,6 +390,11 @@ defcode "zbranch", zbranch
 
 defcode "here", here
     ldr r0, =HERE_VAR_ADDR
+    TOS_PUSH r0
+    NEXT
+
+defcode "last-immediate", last_immediate
+    ldr r0, =LAST_IMMEDIATE_VAR_ADDR
     TOS_PUSH r0
     NEXT
 
