@@ -28,6 +28,10 @@
 : 1+ ( x -- x+1 ) 1 + ;
 : 1- ( x -- x+1 ) 1 - ;
 
+\ EXPERIMENTAL
+: 10divmod ( x -- x/10 x%10 )
+    dup $cccd * 19 rshift swap over 10 * - ;
+
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
 
@@ -58,6 +62,11 @@
     ?dup if
         dup 4 rshift (.hex)
         $f and .hex-digit
+    then ;
+
+: (.dec) ( x -- )
+    ?dup if
+        10divmod swap (.dec) .digit
     then ;
 
 \ Memory operations
@@ -95,14 +104,12 @@
 : ," ( -- ) " dup "len swap here @ "copy here @ + here ! align ;
 
 \ Print a hex word to stdout
-: .hex ( x -- )
-    dup if
-        (.hex)
-    else
-        .hex-digit
-    then ;
+: .hex ( x -- ) dup if (.hex) else .hex-digit then ;
 
-: . ( x -- ) '$' emit .hex ;                 \ TODO: Support decimal
+\ FIXME the decimal divmod hack breaks down with large words
+: . ( x -- )
+    dup 0 < if '-' emit -1 * then
+    dup if (.dec) else .digit then ;
 
 \ Print a string to stdout
 : .str ( addr -- )
