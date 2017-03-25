@@ -9,7 +9,10 @@
 \ 0x0180    LAST the dictionary address of the last regular word
 \ 0x0184    HERE (the variable, not the value)
 \ 0x0188    LAST-IMMEDIATE the dictionary address of the last immediate word
-\ 0x018C
+\ 0x018C    IS-COMPILING? the runtime is currently in compiling instead of executing mode
+\ 0x0190
+\ 0x0194
+\ 0x0198
 \ ( reserved for global vars )
 \ 0x0200    here (the value, write memory starts here)
 
@@ -234,10 +237,26 @@
     dup c@ '$' = if 1+ >hex-number exit then
     (sign) 0 (>number) if * -1 else 2drop 0 then ;
 
+: is-compiling? ( -- ? ) is-compiling @ ;
+
+\ Return whether dictionary word is an immediate word
+: immediate? ( vocab-ptr -- ? ) cell+ c@ $20 and ;
+
+\ Tag last word defined as immediate
+\ NB: Won't work if LAST points to a word in ROM
+: immediate! ( -- )
+    last cell+ dup c@ $20 or swap c! ;
+
+: handle-word ( vocab-ptr -- )
+    dup immediate? is-compiling? invert or if
+        word-code execute
+    else word-code ,        \ If compiling, write words to memory
+    then ;
+
 : interpret ( -- )
     read
-    find-word if word-code execute exit then
-    >number if ( no-op, leave on stack ) exit then
+    find-word if handle-word exit then
+    >number if handle-number exit then
     \ Error message otherwise
     '?' emit cr ;
 

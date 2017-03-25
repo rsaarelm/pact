@@ -19,6 +19,7 @@ STACK_TOP = RAM_START + RAM_LENGTH
 LAST_VAR_ADDR = RAM_START + 0x180
 HERE_VAR_ADDR = RAM_START + 0x184
 LAST_IMMEDIATE_VAR_ADDR = RAM_START + 0x188
+IS_COMPILING_VAR_ADDR = RAM_START + 0x18C
 
 # Vector table
 .long   STACK_TOP
@@ -134,6 +135,10 @@ _start:
 
     ldr r0, =0x0
     ldr r1, =LAST_IMMEDIATE_VAR_ADDR
+    str r0, [r1]
+
+    ldr r0, =0x0
+    ldr r1, =IS_COMPILING_VAR_ADDR
     str r0, [r1]
 
     # Inner interpreter init
@@ -388,6 +393,26 @@ defcode "zbranch", zbranch
 
 .ltorg
 
+# This is high-level code that would otherwise go in the bootstrap module, but
+# it needs to quote the LIT word, and word quoting isn't a part of the
+# bootstrap repertoire.
+defword "handle-number", handle_number
+    .long is_compiling_p
+    .long zbranch
+    .long 1f - .
+    .long lit
+# And here comes the tricky bit, indistinguishable from the previous LIT word
+# that's an actual executed code. The second LIT is instead the value that gets
+# pushed to stack.
+    .long lit
+# And then written to where the compiled code is being generated.
+    .long comma
+# And then we write the actual number from stack as well.
+    .long comma
+1:
+# Otherwise just leave the number for stack, we're in interpret mode.
+    .long exit
+
 defcode "here", here
     ldr r0, =HERE_VAR_ADDR
     TOS_PUSH r0
@@ -395,6 +420,11 @@ defcode "here", here
 
 defcode "last-immediate", last_immediate
     ldr r0, =LAST_IMMEDIATE_VAR_ADDR
+    TOS_PUSH r0
+    NEXT
+
+defcode "is-compiling", is_compiling
+    ldr r0, =IS_COMPILING_VAR_ADDR
     TOS_PUSH r0
     NEXT
 
