@@ -259,7 +259,7 @@
 : is-compiling? ( -- ? ) is-compiling @ ;
 
 \ Return whether dictionary word is an immediate word
-: immediate? ( cfa -- ? ) cfa>ffa c@ $20 and ;
+: immediate? ( cfa -- ? ) cfa>ffa c@ $20 and =0 =0 ;
 
 \ Tag last word defined as immediate
 \ NB: Won't work if LAST points to a word in ROM
@@ -267,7 +267,7 @@
     last cell+ dup c@ $20 or swap c! ;
 
 : handle-word ( vocab-ptr -- )
-    dup word-code immediate? is-compiling? invert or if
+    dup word-code immediate? is-compiling? =0 or if
         word-code execute
     else word-code ,        \ If compiling, write words to memory
     then ;
