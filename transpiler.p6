@@ -2,13 +2,13 @@
 
 # Not using the macro in the main .S file because GAS keeps getting weird about
 # stuff in the string macro argument.
-sub defword(Str $word, Str $sym) {
+sub defword(Str $word, Str $sym, $flags=0) {
     my $word_esc = $word.subst(/'"'/, '\\"', :g);
 say qq:to/END/;
 .align 2
 name_$sym:
     .long _latest_word
-    .byte 0
+    .byte $flags
     .asciz "$word_esc"
 _latest_word = name_$sym
 .align 2
@@ -23,7 +23,7 @@ sub is_immediate(Str $word) {
 
 #| Turn a Pact symbol to an assembler symbol
 sub mangle(Str $s) {
-    die("Mangling immediate word $s") if is_immediate($s);
+    #die("Mangling immediate word $s") if is_immediate($s);
 
     # Complete words with predefined names
     my %predef = flat <
@@ -54,6 +54,11 @@ sub mangle(Str $s) {
         "'?'", '_wut',
         "'\"'", '_doq',
         "'\\'", '_bas',
+        "[", "_sel",
+        "]", "_ser",
+        ":", "_col",
+        ";", "_sem",
+        "[']", "compile_next_word",
     );
 
     return %predef{$s} if %predef{$s};
@@ -127,6 +132,14 @@ sub emit(@words) {
             $current_word = @w.pop();
             $current_sym = mangle($current_word);
             defword($current_word, $current_sym);
+            $in_def = True;
+        } elsif $x eq ':i' {
+            # Define an immediate word, nonstandard syntax since going
+            # back and rewriting the flags later on is hard when transpiling
+            die "Nested word definition" if $in_def;
+            $current_word = @w.pop();
+            $current_sym = mangle($current_word);
+            defword($current_word, $current_sym, 0x20);
             $in_def = True;
         } elsif $x eq ';' {
             die "Unmatched word end" unless $in_def;
