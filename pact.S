@@ -87,7 +87,7 @@ FLAG_HIDDEN_WORD = 0x20     @ Hidden words are not returned during word lookup
 # flags: Bitmask for immediate word or hidden word
 #
 # Used as part of defcode and defword macros, do not use directly.
-.macro word_header name, sym, flags=0
+.macro word_header name, sym, flags=0x80
 # The argument to .align is an exponent of 2, not byte number?
 # Looks like .align 2 gets me 4-byte word boundary then.
 .align 2
@@ -103,14 +103,14 @@ _latest_word = name_\sym
 .endm
 
 # Define a native code word
-.macro defcode name, sym, flags=0
+.macro defcode name, sym, flags=0x80
     word_header \name, \sym, \flags
     .long 1f + 1                @ Jump to code in next word in Thumb mode
 1:
 .endm
 
 # Define an interpreted word
-.macro defword name, sym, flags=0
+.macro defword name, sym, flags=0x80
     word_header \name, \sym, \flags
     .long docol + 1
 .endm

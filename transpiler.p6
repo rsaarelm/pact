@@ -2,7 +2,7 @@
 
 # Not using the macro in the main .S file because GAS keeps getting weird about
 # stuff in the string macro argument.
-sub defword(Str $word, Str $sym, $flags=0) {
+sub defword(Str $word, Str $sym, $flags=0x80) {
     my $word_esc = $word.subst(/'\\'/, '\\\\', :g).subst(/'"'/, '\\"', :g);
 say qq:to/END/;
 .align 2
@@ -139,7 +139,7 @@ sub emit(@words) {
             die "Nested word definition" if $in_def;
             $current_word = @w.pop();
             $current_sym = mangle($current_word);
-            defword($current_word, $current_sym, 0x20);
+            defword($current_word, $current_sym, 0xA0);
             $in_def = True;
         } elsif $x eq ';' {
             die "Unmatched word end" unless $in_def;
