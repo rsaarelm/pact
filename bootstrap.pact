@@ -135,8 +135,11 @@
     over c@ =0 if 2drop exit then
     1+ swap 1+ swap tail-recurse ;
 
-\ Place string in directory. Aligns HERE to cell boundary when done.
-: ," ( -- ) " dup "len swap here @ "copy here @ + here ! align ;
+\ Place string in stack to dictionary
+: ", ( str -- ) dup "len 1+ swap here @ "copy here @ + here ! ;
+
+\ Read string literal and place in directory. May leave HERE unaligned.
+: ," ( -- ) " ", ;
 
 \ Print a hex word to stdout
 : .hex ( x -- )
