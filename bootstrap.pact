@@ -266,15 +266,15 @@
 : immediate! ( -- )
     last @ cell+ dup c@ $20 or swap c! ;
 
-: handle-word ( vocab-ptr -- )
-    dup word-code immediate? is-compiling? =0 or if
-        word-code execute
-    else word-code ,        \ If compiling, write words to memory
+: handle-word ( cfa -- )
+    dup immediate? is-compiling? =0 or if
+        execute
+    else ,        \ If compiling, write words to memory
     then ;
 
 : interpret ( -- )
     read
-    find-word if handle-word exit then
+    find-word if word-code handle-word exit then
     >number if handle-number exit then
     \ Error message otherwise
     '?' emit cr ;
