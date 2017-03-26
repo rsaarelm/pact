@@ -16,6 +16,8 @@
 \ ( reserved for global vars )
 \ 0x0200    here (the value, write memory starts here)
 
+\ ****************************** Logic, arithmetic and basic stack operations
+
 : =0 ( x -- !x ) if 0 else -1 then ;
 : <> ( x y -- x<>y ) = =0 ;
 : < ( x y -- x<y ) - <0 ;
@@ -31,6 +33,27 @@
 : 1+ ( x -- x+1 ) 1 + ;
 : 1- ( x -- x+1 ) 1 - ;
 
+\ ****************************** Bitstring operations
+
+\ Make a 0-valued bitstring word with given bit count and left shift
+\ (The actual value can be applied with just an OR op to the 0bits.)
+: make-bits ( lshift num-bits -- 0bits ) 16 lshift swap 24 lshift or ;
+
+: bits-mask ( bits -- zero-mask )
+    dup 16 rshift $ff and 1 swap lshift 1 - swap 24 rshift lshift invert ;
+
+: bits-value ( bits -- value ) dup $ff and swap 24 rshift lshift ;
+
+: unpack-bits ( bits -- value zero-mask ) dup bits-value swap bits-mask ;
+
+: apply-bits ( value bits -- value' ) unpack-bits rot and or ;
+
+\ Apply bitstring (combination of value and 0bits) to memory address,
+\ leave bits outside the string intact.
+: bits! ( addr 0bits value -- ) or swap dup @ rot apply-bits swap ! ;
+
+\ ****************************** Memory operations
+
 : cell ( x -- cell-size*x ) 4 * ;
 : cell+ ( x -- x+cell-size ) 1 cell + ;
 
@@ -38,9 +61,35 @@
 : aligned ( addr -- word-aligned-addr )
     dup 3 invert and swap 3 and if cell+ then ;
 
+\ Write word at HERE and increment HERE by word length
+: , ( word -- ) here @ ! here @ cell+ here ! ;
+
+\ Align HERE to word boundary
+: align ( -- ) here @ aligned here ! ;
+
+: (.s) ( addr -- )
+    dup sp0 = if exit then
+    dup @ .hex cr cell+ tail-recurse ;
+
+\ Dump stack to stdout
+: .s ( -- ) sp@ (.s) drop ;
+
+: (dump) ( addr len n -- )
+    dup 30 = if drop 0 cr then
+    -rot
+    dup =0 if drop drop drop exit then
+    over c@ dup $10 < if 0 .hex then .hex
+    1- swap 1+ swap rot 1+ tail-recurse ;
+
+\ Dump memory
+: dump ( addr len -- ) 0 (dump) cr ;
+
+\ ****************************** Text processing
+
 \ Some ASCII constants
 
 : '\n' 10 ;
+: bl 32 ;   \ Can't use ' ' because that would parse into two tokens
 : '"' 34 ;
 : '$' 36 ;
 : '-' 45 ;
@@ -62,14 +111,6 @@
         dup 4 rshift (.hex)
         $f and .hex-digit
     then ;
-
-\ Memory operations
-
-\ Write word at HERE and increment HERE by word length
-: , ( word -- ) here @ ! here @ cell+ here ! ;
-
-\ Align HERE to word boundary
-: align ( -- ) here @ aligned here ! ;
 
 : (") ( ptr -- )
     key
@@ -94,7 +135,7 @@
     over c@ =0 if 2drop exit then
     1+ swap 1+ swap tail-recurse ;
 
-\ Place string in directory. Leaves HERE aligned
+\ Place string in directory. Aligns HERE to cell boundary when done.
 : ," ( -- ) " dup "len swap here @ "copy here @ + here ! align ;
 
 \ Print a hex word to stdout
@@ -123,31 +164,12 @@
 : string-end ( adr -- end-adr )
     dup c@ =0 if 1+ else 1+ tail-recurse then ;
 
-: (.s) ( addr -- )
-    dup sp0 = if exit then
-    dup @ .hex cr cell+ tail-recurse ;
+: whitespace? ( key -- ? )
+    dup bl = if drop -1 exit then
+    dup '\n' = if drop -1 exit then
+    drop 0 ;
 
-\ Dump stack to stdout
-: .s ( -- ) sp@ (.s) drop ;
-
-\\ Bitstring ops
-
-\ Make a 0-valued bitstring word with given bit count and left shift
-\ (The actual value can be applied with just an OR op to the 0bits.)
-: make-bits ( lshift num-bits -- 0bits ) 16 lshift swap 24 lshift or ;
-
-: bits-mask ( bits -- zero-mask )
-    dup 16 rshift $ff and 1 swap lshift 1 - swap 24 rshift lshift invert ;
-
-: bits-value ( bits -- value ) dup $ff and swap 24 rshift lshift ;
-
-: unpack-bits ( bits -- value zero-mask ) dup bits-value swap bits-mask ;
-
-: apply-bits ( value bits -- value' ) unpack-bits rot and or ;
-
-\ Apply bitstring (combination of value and 0bits) to memory address,
-\ leave bits outside the string intact.
-: bits! ( addr 0bits value -- ) or swap dup @ rot apply-bits swap ! ;
+\ ****************************** Machine interface
 
 : emit ( char -- ) $E0000000 ! ;
 
@@ -155,7 +177,14 @@
 
 : halt ( -- ) 1 $E000E020 ! ;
 
-\\ Input parsing
+\ ****************************** Vocabulary operations
+
+: (find-word) ( str vocab-ptr -- vocab-ptr T | str F )
+    dup =0 if drop 0 exit then
+    2dup word-name streq if nip -1 exit then
+    @ tail-recurse ;
+
+: find-word ( str -- vocab-ptr T | str F ) last @ (find-word) ;
 
 : word-name ( vocab-ptr -- name-ptr ) cell+ 1+ ;
 
@@ -167,32 +196,12 @@
 \ Dump vocabulary
 : words ( -- ) last @ (words) cr ;
 
-: (dump) ( addr len n -- )
-    dup 30 = if drop 0 cr then
-    -rot
-    dup =0 if drop drop drop exit then
-    over c@ dup $10 < if 0 .hex then .hex
-    1- swap 1+ swap rot 1+ tail-recurse ;
-
-\ Dump memory
-: dump ( addr len -- ) 0 (dump) cr ;
-
-: (find-word) ( str vocab-ptr -- vocab-ptr T | str F )
-    dup =0 if drop 0 exit then
-    2dup word-name streq if nip -1 exit then
-    @ tail-recurse ;
-
-: find-word ( str -- vocab-ptr T | str F ) last @ (find-word) ;
+\ ****************************** Input parsing
 
 : word-buffer ( -- ptr ) ram-start $100 + ;
 : word-buffer-len ( -- n ) $80 ;
 
 : word-buffer-end? ( ptr -- ? ) word-buffer word-buffer-len + 1 - >= ;
-
-: whitespace? ( key -- ? )
-    dup 32 = if drop -1 exit then
-    dup 10 = if drop -1 exit then
-    drop 0 ;
 
 : (read) ( ptr -- )
     dup word-buffer-end? if 0 swap c! exit then
@@ -237,6 +246,8 @@
     dup c@ '$' = if 1+ >hex-number exit then
     (sign) 0 (>number) if * -1 else 2drop 0 then ;
 
+\ ****************************** Compiling and interpreting
+
 : is-compiling? ( -- ? ) is-compiling @ ;
 
 \ Return whether dictionary word is an immediate word
@@ -263,5 +274,7 @@
 \ Read word from input and find its address in directory
 : ' ( -- addr ) read find-word if else nip then ;
 \ XXX: This should be immediate word but we don't support that yet...
+
+\ ****************************** Startup word
 
 : boot ( -- ) interpret tail-recurse ;
