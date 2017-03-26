@@ -284,6 +284,10 @@ if(DBUGRAMW) fprintf(stderr,"0x%08X\n",data);
             {
                 case 0xE0000000:
                     data = fgetc(stdin);
+                    if (data == -1) {
+                        // EOF
+                        exit(0);
+                    }
                     return(data);
                 case 0xE000E010:
                 {
