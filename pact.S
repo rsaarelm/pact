@@ -226,8 +226,8 @@ defcode ">r", tor
     NEXT
 
 # Retrieve word from return stack
-# : >r ( -- x )
-defcode ">r", fromr
+# : r> ( -- x )
+defcode "r>", rto
     POP_RSP r0
     TOS_PUSH r0
     NEXT
