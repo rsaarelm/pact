@@ -121,7 +121,7 @@
     tail-recurse ;
 
 \ Read double quote delimited string from input
-: " ( -- str ) word-buffer (") word-buffer ;
+:i " ( -- str ) word-buffer (") word-buffer ;
 
 : ("len) ( n str -- n )
     dup c@ =0 if drop exit then
@@ -212,7 +212,7 @@
     over c! 1+ tail-recurse ;
 
 \ Read a word into input buffer, stops at first whitespace char
-: read ( -- str )
+:i read ( -- str )
     word-buffer (read)
     word-buffer ;
 
@@ -254,7 +254,7 @@
 : is-compiling? ( -- ? ) is-compiling @ ;
 
 \ Return whether dictionary word is an immediate word
-: immediate? ( vocab-ptr -- ? ) cell+ c@ $20 and ;
+: immediate? ( cfa -- ? ) cfa>ffa c@ $20 and ;
 
 \ Tag last word defined as immediate
 \ NB: Won't work if LAST points to a word in ROM
@@ -275,8 +275,30 @@
     '?' emit cr ;
 
 \ Read word from input and find its address in directory
-: ' ( -- addr ) read find-word if else nip then ;
-\ XXX: This should be immediate word but we don't support that yet...
+:i ' ( -- cfa ) read find-word if word-code else nip then ;
+
+\ Given code field address, return flag field address
+\ Assumes that name only contains ASCII-7 and FFA always has bit 7 set.
+: cfa>ffa ( cfa -- ffa )
+    1- dup c@ $80 and if else tail-recurse then ;
+
+\ Compile following word even if it's immediate or we're in interpret mode
+:i ['] read find-word if word-code , else 'F' emit cr halt then ;
+
+\ Enter immediate mode
+:i [ 0 is-compiling ! ;
+
+\ Enter compile mode
+:i ] -1 is-compiling ! ;
+
+\ Read a word from input and create a header for that word in RAM
+:i create ( -- )
+    align
+    here @
+    last @ ,        \ Pointer to previous LAST word
+    last !          \ Update LAST to this with the HERE value on stack
+    $80 , here @ 3 - here ! \ Flags byte
+    read ", align ;
 
 \ ****************************** Startup word
 
