@@ -3,7 +3,7 @@
 # Not using the macro in the main .S file because GAS keeps getting weird about
 # stuff in the string macro argument.
 sub defword(Str $word, Str $sym, $flags=0) {
-    my $word_esc = $word.subst(/'"'/, '\\"', :g);
+    my $word_esc = $word.subst(/'\\'/, '\\\\', :g).subst(/'"'/, '\\"', :g);
 say qq:to/END/;
 .align 2
 name_$sym:
