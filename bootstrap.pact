@@ -287,9 +287,6 @@
 : cfa>ffa ( cfa -- ffa )
     1- dup c@ $80 and if else tail-recurse then ;
 
-\ Compile following word even if it's immediate or we're in interpret mode
-:i ['] read find-word if word-code , else 'F' emit cr halt then ;
-
 \ Enter immediate mode
 :i [ 0 is-compiling ! ;
 
