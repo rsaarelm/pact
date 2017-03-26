@@ -65,7 +65,12 @@
 : , ( word -- ) here @ ! here @ cell+ here ! ;
 
 \ Align HERE to word boundary
-: align ( -- ) here @ aligned here ! ;
+: align ( -- )
+    here @ 3 and if
+        0 here @ c!
+        here @ 1+ here !
+        tail-recurse
+    then ;
 
 : (.s) ( addr -- )
     dup sp0 = if exit then

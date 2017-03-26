@@ -90,12 +90,12 @@ FLAG_HIDDEN_WORD = 0x20     @ Hidden words are not returned during word lookup
 .macro word_header name, sym, flags=0x80
 # The argument to .align is an exponent of 2, not byte number?
 # Looks like .align 2 gets me 4-byte word boundary then.
-.align 2
+.align 2, 0
 name_\sym:
     .long _latest_word          @ Back pointer to previous.
     .byte \flags
     .asciz "\name"
-.align 2
+.align 2, 0
 \sym:
 
 # Assign this word to the latest word chain
@@ -309,12 +309,12 @@ defcode "<0", ltz
 
 # : = ( x y -- x=y )
 # XXX: Have to write out the defcode because can't pass '=' as param.
-.align 2
+.align 2, 0
 name_equals:
     .long _latest_word          @ Back pointer to previous.
     .byte 0
     .asciz "="
-.align 2
+.align 2, 0
 _latest_word = name_equals
 equals:
     .long 1f + 1                @ Jump to code in next word in Thumb mode

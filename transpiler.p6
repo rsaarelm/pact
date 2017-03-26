@@ -5,13 +5,13 @@
 sub defword(Str $word, Str $sym, $flags=0x80) {
     my $word_esc = $word.subst(/'\\'/, '\\\\', :g).subst(/'"'/, '\\"', :g);
 say qq:to/END/;
-.align 2
+.align 2, 0
 name_$sym:
     .long _latest_word
     .byte $flags
     .asciz "$word_esc"
 _latest_word = name_$sym
-.align 2
+.align 2, 0
 $sym:
     .long docol + 1
 END
