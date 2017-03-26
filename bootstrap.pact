@@ -264,7 +264,7 @@
 \ Tag last word defined as immediate
 \ NB: Won't work if LAST points to a word in ROM
 : immediate! ( -- )
-    last cell+ dup c@ $20 or swap c! ;
+    last @ cell+ dup c@ $20 or swap c! ;
 
 : handle-word ( vocab-ptr -- )
     dup word-code immediate? is-compiling? =0 or if
