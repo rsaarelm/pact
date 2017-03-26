@@ -75,7 +75,7 @@
 : .s ( -- ) sp@ (.s) drop ;
 
 : (dump) ( addr len n -- )
-    dup 30 = if drop 0 cr then
+    dup 32 = if drop 0 cr then
     -rot
     dup =0 if drop drop drop exit then
     over c@ dup $10 < if 0 .hex then .hex
