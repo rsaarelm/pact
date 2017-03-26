@@ -262,7 +262,7 @@
     last cell+ dup c@ $20 or swap c! ;
 
 : handle-word ( vocab-ptr -- )
-    dup immediate? is-compiling? invert or if
+    dup word-code immediate? is-compiling? invert or if
         word-code execute
     else word-code ,        \ If compiling, write words to memory
     then ;
