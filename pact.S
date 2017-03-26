@@ -376,7 +376,7 @@ defcode "branch", branch
     NEXT
 
 # If top of stack is 0, do a branch
-defcode "zbranch", zbranch
+defcode "0branch", zbranch
     TOS_POP r0
     cmp r0, #0
     bne 1f
