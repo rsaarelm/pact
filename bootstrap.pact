@@ -211,14 +211,17 @@
 
 : word-buffer-end? ( ptr -- ? ) word-buffer word-buffer-len + 1 - >= ;
 
-: (read) ( ptr -- )
-    dup word-buffer-end? if 0 swap c! exit then
-    key dup whitespace? if drop 0 swap c! exit then
-    over c! 1+ tail-recurse ;
+: (eat-whitespace) ( -- key )
+    key dup whitespace? if drop tail-recurse then ;
+
+: (read) ( ptr key -- )
+    over word-buffer-end? if drop 0 swap c! exit then
+    dup whitespace? if drop 0 swap c! exit then
+    over c! 1+ key tail-recurse ;
 
 \ Read a word into input buffer, stops at first whitespace char
 :i read ( -- str )
-    word-buffer (read)
+    word-buffer (eat-whitespace) (read)
     word-buffer ;
 
 \ If str begins with '-', increment str by 1 byte and push -1 to stack,
