@@ -232,10 +232,12 @@
 
 : hex-digit? ( c -- ? ) dup digit? swap dup 'A' >= swap 'F' <= and or ;
 
-: >hex-digit ( c -- F | n T )
-    dup hex-digit? if
+: (>hex-digit) ( c -- n )
     dup 'A' >= if 7 - then              \ Bring on top of the ASCII decimals
-    '0' - -1 else drop 0 then ;
+    '0' - ;
+
+: >hex-digit ( c -- F | n T )
+    dup hex-digit? if (>hex-digit) -1 else drop 0 then ;
 
 : (>hex-number) ( str n -- F | n T )
     over c@ =0 if nip -1 exit then
