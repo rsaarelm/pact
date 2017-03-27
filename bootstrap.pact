@@ -280,7 +280,7 @@
     '?' emit cr ;
 
 \ Read word from input and find its address in directory
-:i ' ( -- cfa ) read find-word if word-code else nip then handle-number ;
+:i ' ( -- cfa|0 ) read find-word if word-code else drop 0 then handle-number ;
 
 \ Given code field address, return flag field address
 \ Assumes that name only contains ASCII-7 and FFA always has bit 7 set.
