@@ -30,6 +30,8 @@ create : ' docol cell+ 1+ , ' create ,
 \ word.
 
 
+\ Testing crap
+
 : test if 'A' emit cr else 'F' emit cr end ;
 
 0 test
